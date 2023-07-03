@@ -218,13 +218,13 @@ void loop() {
   // OUT_PWM_GO(3, p3);
   // OUT_PWM_GO(5, p5);
   // OUT_PWM_GO(6, p6);
-  p6++;
-  if (p6 > 1) {
-    p3++;
-    p6 = 0;
-  }
-  if (p3 > 255) p3 = 0;
-  OUT_PWM_GO(3, p3 / 1);
+//  p6++;
+ // if (p6 > 1) {
+ //   p3++;
+//    p6 = 0;
+//  }
+ // if (p3 > 255) p3 = 0;
+  //OUT_PWM_GO(3, p3 / 1);
 }
 
 
