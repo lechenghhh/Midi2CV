@@ -3,6 +3,8 @@
 #include <SPI.h>                 //DAC通信用
 MIDI_CREATE_DEFAULT_INSTANCE();  //MIDIライブラリを有効启用MIDI库
 
+//2 4 7 gate
+//3 5 6 CV
 const int LDAC = 9;  //SPI trans setting
 int note_no = 0;     //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
 
@@ -35,8 +37,12 @@ void setup() {
 
   pinMode(LDAC, OUTPUT);  //DAC trans
   pinMode(SS, OUTPUT);    //DAC trans
+  pinMode(2, OUTPUT);     //CLK_OUT
   pinMode(4, OUTPUT);     //CLK_OUT
-  pinMode(5, OUTPUT);     //GATE_OUT
+  pinMode(7, OUTPUT);     //CLK_OUT
+  pinMode(3, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(6, OUTPUT);
 
   MIDI.begin(1);  // MIDI CH1をlisten
 
@@ -48,6 +54,9 @@ void setup() {
 
   // FlexiTimer2::set(5, 1.0 / 100000, timer_count);  // 50usec/count
   // FlexiTimer2::start();
+
+  // TCCR2A = _BV(COM2A1) | _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
+  // TCCR2B = _BV(CS22);
 }
 
 void loop() {
@@ -55,7 +64,7 @@ void loop() {
   // Serial.println("  ");
 
   //-----------------------------clock_rate setting----------------------------
-  clock_rate = analogRead(1);  //read knob voltage
+  clock_rate = 1;  //read knob voltage
 
   if (clock_rate < 256) {
     clock_max = 24;  //slow
@@ -68,16 +77,17 @@ void loop() {
   }
 
   //-----------------------------gate ratch----------------------------
-  if (note_on_count != 0) {
-    Serial.println("1111111111111");
+  // if (note_on_count != 0) {
+  //   // Serial.println("1111111111111");
 
-    if ((millis() - trigTimer <= 20) && (millis() - trigTimer > 10)) {
-      digitalWrite(5, LOW);
-    }
-    if ((trigTimer > 0) && (millis() - trigTimer > 20)) {
-      digitalWrite(5, HIGH);
-    }
-  }
+  //   int TRIG_DEC = 20;
+  //   if ((millis() - trigTimer <= TRIG_DEC) && (millis() - trigTimer > 10)) {
+  //     // digitalWrite(2, LOW);
+  //   }
+  //   if ((trigTimer > 0) && (millis() - trigTimer > TRIG_DEC)) {
+  //     // digitalWrite(2, HIGH);
+  //   }
+  // }
 
   //-----------------------------midi operation----------------------------
   if (MIDI.read()) {  // 如果频道1有信号的话
@@ -143,10 +153,13 @@ void loop() {
             cc_mode = MIDI.getData2() >> 5;  //一共四种模式
             break;
           case 1:  //modulation
-            if (cc_mode == 0) OUT_PWM(3, MIDI.getData2() << 3);
+            if (cc_mode == 0)
+              p3 = MIDI.getData2() << 3;
+            // OUT_PWM(3, MIDI.getData2() << 3);
             break;
           case 12:
             if (cc_mode == 1) OUT_PWM(3, MIDI.getData2() << 3);
+            // p3 = MIDI.getData2() << 3;
             break;
           case 13:
             if (cc_mode == 1) OUT_PWM(5, MIDI.getData2() << 3);
@@ -218,13 +231,18 @@ void loop() {
   // OUT_PWM_GO(3, p3);
   // OUT_PWM_GO(5, p5);
   // OUT_PWM_GO(6, p6);
-//  p6++;
- // if (p6 > 1) {
- //   p3++;
-//    p6 = 0;
-//  }
- // if (p3 > 255) p3 = 0;
+  //  p6++;
+  // if (p6 > 1) {
+  //   p3++;
+  //    p6 = 0;
+  //  }
+  // if (p3 > 255) p3 = 0;
   //OUT_PWM_GO(3, p3 / 1);
+  analogWrite(3, p3);
+  analogWrite(5, p5);
+  analogWrite(6, p6);
+  // OCR2A = p3;
+  // OCR2B = p3;
 }
 
 
