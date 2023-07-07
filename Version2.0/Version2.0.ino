@@ -31,6 +31,7 @@ const long cv[61] = {  // V/OCT LSB for DAC
   3277, 3345, 3413, 3482, 3550, 3618, 3686, 3755, 3823, 3891, 3959, 4028, 4095
 };
 int p3 = 0, p5 = 0, p6 = 0;
+int note4[4] = { 0, 0, 0, 0 };
 
 void setup() {
   Serial.begin(115200);
@@ -62,7 +63,7 @@ void setup() {
 void loop() {
   // Serial.println(" ");
   //-----------------------------clock_rate setting----------------------------
-  clock_rate = 1;  //read knob voltage
+  // clock_rate = 1;  //read knob voltage
 
   if (clock_rate < 256) {
     clock_max = 24;  //slow
@@ -79,12 +80,12 @@ void loop() {
     // Serial.println("1");
 
     int TRIG_DEC = 20;
-    if ((millis() - trigTimer <= TRIG_DEC) && (millis() - trigTimer > 10)) {
-      digitalWrite(2, LOW);
-    }
-    if ((trigTimer > 0) && (millis() - trigTimer > TRIG_DEC)) {
-      digitalWrite(2, HIGH);
-    }
+    // if ((millis() - trigTimer <= TRIG_DEC) && (millis() - trigTimer > 10)) {
+    //   digitalWrite(2, LOW);
+    // }
+    // if ((trigTimer > 0) && (millis() - trigTimer > TRIG_DEC)) {
+    //   digitalWrite(2, HIGH);
+    // }
   }
 
   //-----------------------------midi operation----------------------------
@@ -96,6 +97,7 @@ void loop() {
         note_on_count++;
         trigTimer = millis();
         if (note_on_count == 1) {
+          // if (note_on_count % 2 == 1) {
           note_no = MIDI.getData1() - 21;  //note number
           int velocity = MIDI.getData2();
           if (note_no < 0) {
@@ -106,9 +108,12 @@ void loop() {
 
           digitalWrite(4, HIGH);                   //Gate》HIGH
           if (cc_mode == 0) OUT_PWM(5, velocity);  //3个cv映射输出力度cv
-          OUT_CV(cv[note_no]);                     //V/OCT LSB for DAC》参照
+
+
+          OUT_CV(cv[note_no]);  //V/OCT LSB for DAC》参照
         }
         if (note_on_count == 2) {
+          // if (note_on_count % 2 == 0) {
           note_no = MIDI.getData1() - 21;  //note number
           int velocity = MIDI.getData2();
           if (note_no < 0) {
@@ -116,20 +121,22 @@ void loop() {
           } else if (note_no >= 61) {
             note_no = 60;
           }
-
           digitalWrite(7, HIGH);                   //Gate》HIGH
           if (cc_mode == 0) OUT_PWM(5, velocity);  //3个cv映射输出力度cv
           OUT_CV2(cv[note_no]);                    //V/OCT LSB for DAC》参照
         }
+
         break;
 
       case midi::NoteOff:  //if NoteOff 关闭后
 
         note_on_count--;
         if (note_on_count == 0) {
+          // if (note_on_count % 2 == 0) {
           digitalWrite(4, LOW);  //Gate 》LOW
         }
         if (note_on_count == 1) {
+          // if (note_on_count % 2 == 1) {
           digitalWrite(7, LOW);  //Gate 》LOW
         }
         break;
@@ -143,6 +150,11 @@ void loop() {
           case 11:
           case 21:
           case 31:
+            clock_rate = MIDI.getData2() >> 5;
+            break;
+          case 12:
+          case 22:
+          case 32:
             cc_mode = MIDI.getData2() >> 5;  //一共四种模式 //change cc maping in modular
             break;
         }
@@ -152,19 +164,19 @@ void loop() {
             if (MIDI.getData1() == 1) OUT_PWM(3, MIDI.getData2());
             break;
           case 1:
-            if (MIDI.getData1() == 12) OUT_PWM(3, MIDI.getData2());
-            if (MIDI.getData1() == 13) OUT_PWM(5, MIDI.getData2());
-            if (MIDI.getData1() == 14) OUT_PWM(6, MIDI.getData2());
+            if (MIDI.getData1() == 13) OUT_PWM(3, MIDI.getData2());
+            if (MIDI.getData1() == 14) OUT_PWM(5, MIDI.getData2());
+            if (MIDI.getData1() == 15) OUT_PWM(6, MIDI.getData2());
             break;
           case 2:
-            if (MIDI.getData1() == 22) OUT_PWM(3, MIDI.getData2());
-            if (MIDI.getData1() == 23) OUT_PWM(5, MIDI.getData2());
-            if (MIDI.getData1() == 24) OUT_PWM(6, MIDI.getData2());
+            if (MIDI.getData1() == 23) OUT_PWM(3, MIDI.getData2());
+            if (MIDI.getData1() == 24) OUT_PWM(5, MIDI.getData2());
+            if (MIDI.getData1() == 25) OUT_PWM(6, MIDI.getData2());
             break;
-          case 3:
-            if (MIDI.getData1() == 32) OUT_PWM(3, MIDI.getData2());
-            if (MIDI.getData1() == 33) OUT_PWM(5, MIDI.getData2());
-            if (MIDI.getData1() == 34) OUT_PWM(6, MIDI.getData2());
+          case 3:  //音符触发模式
+            if (MIDI.getData1() == 33) OUT_PWM(3, MIDI.getData2());
+            if (MIDI.getData1() == 34) OUT_PWM(5, MIDI.getData2());
+            if (MIDI.getData1() == 35) OUT_PWM(6, MIDI.getData2());
             break;
         }
 
