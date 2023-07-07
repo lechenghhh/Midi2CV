@@ -61,8 +61,6 @@ void setup() {
 
 void loop() {
   // Serial.println(" ");
-  // Serial.println("  ");
-
   //-----------------------------clock_rate setting----------------------------
   clock_rate = 1;  //read knob voltage
 
@@ -77,17 +75,17 @@ void loop() {
   }
 
   //-----------------------------gate ratch----------------------------
-  // if (note_on_count != 0) {
-  //   // Serial.println("1111111111111");
+  if (note_on_count != 0) {
+    // Serial.println("1");
 
-  //   int TRIG_DEC = 20;
-  //   if ((millis() - trigTimer <= TRIG_DEC) && (millis() - trigTimer > 10)) {
-  //     // digitalWrite(2, LOW);
-  //   }
-  //   if ((trigTimer > 0) && (millis() - trigTimer > TRIG_DEC)) {
-  //     // digitalWrite(2, HIGH);
-  //   }
-  // }
+    int TRIG_DEC = 20;
+    if ((millis() - trigTimer <= TRIG_DEC) && (millis() - trigTimer > 10)) {
+      digitalWrite(2, LOW);
+    }
+    if ((trigTimer > 0) && (millis() - trigTimer > TRIG_DEC)) {
+      digitalWrite(2, HIGH);
+    }
+  }
 
   //-----------------------------midi operation----------------------------
   if (MIDI.read()) {  // 如果频道1有信号的话
@@ -99,7 +97,7 @@ void loop() {
         trigTimer = millis();
         if (note_on_count == 1) {
           note_no = MIDI.getData1() - 21;  //note number
-          int velocity = MIDI.getData1();
+          int velocity = MIDI.getData2();
           if (note_no < 0) {
             note_no = 0;
           } else if (note_no >= 61) {
@@ -112,7 +110,7 @@ void loop() {
         }
         if (note_on_count == 2) {
           note_no = MIDI.getData1() - 21;  //note number
-          int velocity = MIDI.getData1();
+          int velocity = MIDI.getData2();
           if (note_no < 0) {
             note_no = 0;
           } else if (note_no >= 61) {
@@ -123,10 +121,7 @@ void loop() {
           if (cc_mode == 0) OUT_PWM(5, velocity);  //3个cv映射输出力度cv
           OUT_CV2(cv[note_no]);                    //V/OCT LSB for DAC》参照
         }
-
-
         break;
-
 
       case midi::NoteOff:  //if NoteOff 关闭后
 
@@ -140,7 +135,7 @@ void loop() {
         break;
 
       case midi::AfterTouchPoly:
-        if (cc_mode == 0) OUT_PWM(6, MIDI.getData2() << 3);  //3个cv映射输出力度cv
+        if (cc_mode == 0) OUT_PWM(6, MIDI.getData2());  //3个cv映射输出力度cv
         break;
 
       case midi::ControlChange:
@@ -148,46 +143,30 @@ void loop() {
           case 11:
           case 21:
           case 31:
-          case 41:
-          case 51:                           //change cc maping in modular
-            cc_mode = MIDI.getData2() >> 5;  //一共四种模式
-            break;
-          case 1:  //modulation
-            if (cc_mode == 0)
-              p3 = MIDI.getData2() << 3;
-            // OUT_PWM(3, MIDI.getData2() << 3);
-            break;
-          case 12:
-            if (cc_mode == 1) OUT_PWM(3, MIDI.getData2() << 3);
-            // p3 = MIDI.getData2() << 3;
-            break;
-          case 13:
-            if (cc_mode == 1) OUT_PWM(5, MIDI.getData2() << 3);
-            break;
-          case 14:
-            if (cc_mode == 1) OUT_PWM(6, MIDI.getData2() << 3);
-            break;
-          case 22:
-            if (cc_mode == 2) OUT_PWM(3, MIDI.getData2() << 3);
-            break;
-          case 23:
-            if (cc_mode == 2) OUT_PWM(5, MIDI.getData2() << 3);
-            break;
-          case 24:
-            if (cc_mode == 2) OUT_PWM(6, MIDI.getData2() << 3);
-            break;
-          case 32:
-            if (cc_mode == 3) OUT_PWM(3, MIDI.getData2() << 3);
-            break;
-          case 33:
-            if (cc_mode == 3) OUT_PWM(5, MIDI.getData2() << 3);
-            break;
-          case 34:
-            if (cc_mode == 3) OUT_PWM(6, MIDI.getData2() << 3);
+            cc_mode = MIDI.getData2() >> 5;  //一共四种模式 //change cc maping in modular
             break;
         }
 
-
+        switch (cc_mode) {
+          case 0:
+            if (MIDI.getData1() == 1) OUT_PWM(3, MIDI.getData2());
+            break;
+          case 1:
+            if (MIDI.getData1() == 12) OUT_PWM(3, MIDI.getData2());
+            if (MIDI.getData1() == 13) OUT_PWM(5, MIDI.getData2());
+            if (MIDI.getData1() == 14) OUT_PWM(6, MIDI.getData2());
+            break;
+          case 2:
+            if (MIDI.getData1() == 22) OUT_PWM(3, MIDI.getData2());
+            if (MIDI.getData1() == 23) OUT_PWM(5, MIDI.getData2());
+            if (MIDI.getData1() == 24) OUT_PWM(6, MIDI.getData2());
+            break;
+          case 3:
+            if (MIDI.getData1() == 32) OUT_PWM(3, MIDI.getData2());
+            if (MIDI.getData1() == 33) OUT_PWM(5, MIDI.getData2());
+            if (MIDI.getData1() == 34) OUT_PWM(6, MIDI.getData2());
+            break;
+        }
 
       case midi::Clock:
         clock_count++;
@@ -203,13 +182,11 @@ void loop() {
         }
         break;
 
-
       case midi::Stop:
         clock_count = 0;
         digitalWrite(4, LOW);  //Gate》LOW
         digitalWrite(7, LOW);  //Gate》LOW
         break;
-
 
       case midi::PitchBend:
         bend_lsb = MIDI.getData1();  //LSB
@@ -228,21 +205,6 @@ void loop() {
         break;
     }
   }
-  // OUT_PWM_GO(3, p3);
-  // OUT_PWM_GO(5, p5);
-  // OUT_PWM_GO(6, p6);
-  //  p6++;
-  // if (p6 > 1) {
-  //   p3++;
-  //    p6 = 0;
-  //  }
-  // if (p3 > 255) p3 = 0;
-  //OUT_PWM_GO(3, p3 / 1);
-  analogWrite(3, p3);
-  analogWrite(5, p5);
-  analogWrite(6, p6);
-  // OCR2A = p3;
-  // OCR2B = p3;
 }
 
 
@@ -267,20 +229,5 @@ void OUT_CV2(int cv2) {
 }
 
 void OUT_PWM(int pin, int cc_value) {
-  // analogWrite(pin, cc_value);
-  switch (pin) {
-    case 3:
-      p3 = cc_value;
-      break;
-    case 5:
-      break;
-      p5 = cc_value;
-    case 6:
-      break;
-      p6 = cc_value;
-  }
-}
-
-void OUT_PWM_GO(int pin, int cc_value) {
-  analogWrite(pin, cc_value);
+  analogWrite(pin, cc_value << 1);
 }
