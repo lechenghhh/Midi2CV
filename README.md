@@ -5,7 +5,7 @@
 
 ## 功能与参数介绍:
 ### 1xTrs Midi In(可通过跳线盘切换Trs TypeA/B)
-### 1xClock Out(Midi时钟)
+### 1xClock Out(Midi时钟) 另可通过cc21调整clock倍速
 ### 2xPoly Out(2复音)(CV范围0-5V)
 ### 2xGate Out(与复音对应的门)
 ### 3xCV Out(Midi CC信息转化而来的CV 有五种模式)
