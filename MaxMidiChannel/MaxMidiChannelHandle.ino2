@@ -1,7 +1,8 @@
 #include <MIDI.h>
 // #include <FlexiTimer2.h>
-#include <SPI.h>                 //DAC通信用
-MIDI_CREATE_DEFAULT_INSTANCE();  //MIDIライブラリを有効启用MIDI库
+#include <SPI.h>  //DAC通信用
+// MIDI_CREATE_DEFAULT_INSTANCE();  //MIDIライブラリを有効启用MIDI库
+MIDI_CREATE_INSTANCE(HardwareSerial, Serial, MIDI);  //配置MIDI接口使用Serial，名称为MIDI
 
 //2 4 7 gate
 //3 5 6 CV
@@ -57,11 +58,14 @@ void setup() {
   SPI.setDataMode(SPI_MODE0);           // クロック極性０(LOW)　クロック位相０
   delay(50);
 
-  // FlexiTimer2::set(5, 1.0 / 100000, timer_count);  // 50usec/count
-  // FlexiTimer2::start();
-
-  // TCCR2A = _BV(COM2A1) | _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
-  // TCCR2B = _BV(CS22);
+  MIDI.setHandleNoteOn(HandleHardwareNoteOn);  //音符开
+  MIDI.setHandleNoteOff(HandleHardwareNoteOff);
+  MIDI.setHandleControlChange(HandleHardwareControlChange);          //控制信息
+  MIDI.setHandleProgramChange(HandleHardwareProgramChange);          //程序改变
+  MIDI.setHandlePitchBend(HandleHardwarePitchBend);                  //弯音轮
+  MIDI.setHandleAfterTouchChannel(HandleHardwareAfterTouchChannel);  //触后通道
+  MIDI.setHandleAfterTouchPoly(HandleHardwareAfterTouchPoly);        //触后音符
+  MIDI.setHandleSystemExclusive(HandleHardwareSystemExclusive);      //系统信息
 }
 
 void loop() {
@@ -84,8 +88,10 @@ void loop() {
     // Serial.println("1");
     int TRIG_DEC = 20;
   }
+  MIDI.read();  //别忘了在循环中添加这行
 
   //-----------------------------midi operation----------------------------
+  /*
   if (MIDI.read()) {  // 如果频道1有信号的话
     switch (MIDI.getType()) {
       case midi::AfterTouchPoly:
@@ -184,9 +190,9 @@ void loop() {
           break;
         case midi::NoteOff:  //if NoteOff 关闭后
           if (note_on_count1 > 0) note_on_count1--;
-          // if (note_on_count1 < 1) {
+          if (note_on_count1 < 1) {
             digitalWrite(4, LOW);  //Gate 》LOW
-          // }
+          }
           break;
           // case midi::Stop:
           //   note_on_count1 = 0;
@@ -196,10 +202,9 @@ void loop() {
       }
     }
 
-    if (MIDI.getChannel() == 2) { /*MIDI CH2*/
+    if (MIDI.getChannel() == 2) { //MIDI CH2
       switch (MIDI.getType()) {
         case midi::NoteOn:  //if NoteOn
-          // digitalWrite(7, HIGH);  //Gate》HIGH
 
           note_on_count2++;
           note_no2 = MIDI.getData1() - 21;  //note number
@@ -213,13 +218,11 @@ void loop() {
 
           break;
         case midi::NoteOff:  //if NoteOff 关闭后
-          // digitalWrite(7, LOW);  //Gate》LOW
           note_on_count2--;
 
-          // if (note_on_count2 > 0) note_on_count2--;
-          // if (note_on_count2 < 1) {
+          if (note_on_count2 < 1) {
             digitalWrite(7, LOW);  //Gate 》LOW
-          // }
+          }
           break;
           // case midi::Stop:
           //   note_on_count2 = 0;
@@ -228,6 +231,72 @@ void loop() {
           //   break;
       }  //MIDI CH2
     }
+  }
+  */
+}
+//================================================================
+void HandleHardwareNoteOn(byte channel, byte note, byte velocity) {
+  if (channel == 1) {
+    note_on_count1++;
+    note_no1 = note - 21;  //note number
+    if (note_no1 < 0) {
+      note_no1 = 0;
+    } else if (note_no1 >= 61) {
+      note_no1 = 60;
+    }
+    digitalWrite(4, HIGH);                          //Gate》HIGH
+    OUT_CV1(cv[note_no1]);                          //V/OCT LSB for DAC》参照
+    if (cc_mode == 0) OUT_PWM(5, MIDI.getData2());  //3个cv映射输出力度cv
+  }
+  if (channel == 2) {
+    note_on_count2++;
+    note_no2 = note - 21;  //note number
+    if (note_no2 < 0) {
+      note_no2 = 0;
+    } else if (note_no2 >= 61) {
+      note_no2 = 60;
+    }
+    digitalWrite(7, HIGH);  //Gate》HIGH
+    OUT_CV2(cv[note_no2]);  //V/OCT LSB for DAC》参照
+  }
+}
+
+void HandleHardwareNoteOff(byte channel, byte note, byte velocity) {
+  if (channel == 1) {
+    note_on_count1--;
+    if (note_on_count1 < 1) {
+      digitalWrite(4, LOW);  //Gate 》LOW
+    }
+  }
+  if (channel == 2) {
+    note_on_count2--;
+    if (note_on_count2 < 1) {
+      digitalWrite(7, LOW);  //Gate 》LOW
+    }
+  }
+}
+
+void HandleHardwareControlChange(byte channel, byte note, byte velocity) {
+}
+
+void HandleHardwareProgramChange(byte channel, byte number) {
+}
+
+void HandleHardwarePitchBend(byte channel, int bend) {
+}
+
+void HandleHardwareAfterTouchChannel(byte channel, byte pressure) {
+}
+
+void HandleHardwareAfterTouchPoly(byte channel, byte note, byte pressure) {
+}
+// const byte *data;
+void HandleHardwareSystemExclusive(byte *array, unsigned int size) {
+  unsigned int number = MIDI.getSysExArrayLength();
+  const byte *pMsg = MIDI.getSysExArray();
+  for (int n = 0; n < number; n++) {
+    //data[n]为接收到的系统信息
+    // data[n] = pMsg[n];
   }
 }
 
