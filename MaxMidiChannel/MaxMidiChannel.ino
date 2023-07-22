@@ -87,7 +87,6 @@ void loop() {
 
   //-----------------------------midi operation----------------------------
   if (MIDI.read()) {               // 如果频道1有信号的话
-                                   /*
     switch (MIDI.getType()) {
       case midi::AfterTouchPoly:
         if (cc_mode == 0) OUT_PWM(6, MIDI.getData2());  //3个cv映射输出力度cv
@@ -159,7 +158,7 @@ void loop() {
         digitalWrite(7, LOW);  //Gate》LOW
         break;
     }
-*/
+    
     if (MIDI.getChannel() == 1) {  //MIDI CH1
       switch (MIDI.getType()) {
         case midi::NoteOn:  //if NoteOn
