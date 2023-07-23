@@ -25,6 +25,8 @@ byte clock_max = 24;  //clock_max change by knob setting
 byte clock_on_time = 0;
 int clock_rate = 0;  //knob CVin
 
+int tmp_last_note1 = -1, tmp_last_note2 = -1;
+
 int cc_mode = 0;  //用于更改当前cc映射模式
 
 const long cv[61] = {  // V/OCT LSB for DAC
@@ -160,6 +162,8 @@ void loop() {
       case midi::Stop:
         note_on_count1 = 0;
         note_on_count2 = 0;
+        tmp_last_note1 = -1;
+        tmp_last_note2 = -1;
         // clock_count1 = 0;
         digitalWrite(4, LOW);  //Gate》LOW
         digitalWrite(7, LOW);  //Gate》LOW
@@ -171,6 +175,7 @@ void loop() {
         case midi::NoteOn:  //if NoteOn
           note_on_count1++;
           note_no1 = MIDI.getData1() - 21;  //note number
+          tmp_last_note1 = MIDI.getData1();
           if (note_no1 < 0) {
             note_no1 = 0;
           } else if (note_no1 >= 61) {
@@ -182,27 +187,23 @@ void loop() {
           if (cc_mode == 0) OUT_PWM(5, MIDI.getData2());  //3个cv映射输出力度cv
 
           break;
-        case midi::NoteOff:  //if NoteOff 关闭后
-          if (note_on_count1 > 0) note_on_count1--;
+        case midi::NoteOff:
+          // if (note_on_count1 > 0) note_on_count1--;
           // if (note_on_count1 < 1) {
+          if (tmp_last_note1 == MIDI.getData1())
             digitalWrite(4, LOW);  //Gate 》LOW
           // }
           break;
-          // case midi::Stop:
-          //   note_on_count1 = 0;
-          //   // clock_count1 = 0;
-          //   digitalWrite(4, LOW);  //Gate》LOW
-          //   break;
       }
     }
 
     if (MIDI.getChannel() == 2) { /*MIDI CH2*/
       switch (MIDI.getType()) {
         case midi::NoteOn:  //if NoteOn
-          // digitalWrite(7, HIGH);  //Gate》HIGH
 
           note_on_count2++;
           note_no2 = MIDI.getData1() - 21;  //note number
+          tmp_last_note2 = MIDI.getData1();
           if (note_no2 < 0) {
             note_no2 = 0;
           } else if (note_no2 >= 61) {
@@ -213,19 +214,13 @@ void loop() {
 
           break;
         case midi::NoteOff:  //if NoteOff 关闭后
-          // digitalWrite(7, LOW);  //Gate》LOW
-          note_on_count2--;
-
           // if (note_on_count2 > 0) note_on_count2--;
           // if (note_on_count2 < 1) {
+          if (tmp_last_note2 == MIDI.getData1())
             digitalWrite(7, LOW);  //Gate 》LOW
           // }
           break;
-          // case midi::Stop:
-          //   note_on_count2 = 0;
-          //   // clock_count2 = 0;
-          //   digitalWrite(7, LOW);  //Gate》LOW
-          //   break;
+
       }  //MIDI CH2
     }
   }
