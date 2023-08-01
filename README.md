@@ -37,9 +37,9 @@
 #### https://github.com/FortySevenEffects/arduino_midi_library   这个是arduino midi库 需要下载zip 并用arduino的库管理器安装该zip
 #### 打开项目中对应的 .ino 文件(使用Arduino IDE打开)
 #### 左上角有个框 点击后下拉选中您的usb连接的com口号码 然后找到 Arduino Nano 右边usb需要再次选择一下com口号码 然后按确定
-#### 上方工具/tools > Processro > Atmega168
+#### 上方工具/tools > Processror > Atmega168
 #### 注:以上操作做一次之后不用再做 除非你换了个ino打开则需要重新选择
-#### 点击左上方第二个叫做 上传 的按钮 等待右下方的提示信息直到提示 上传完成 并重新装回跳线帽
+#### 点击左上方第二个叫做 上传 的按钮 等待右下方的提示信息直到提示 上传完成 并重新装回跳线帽 整个上传程序流程完成
 
 
 
