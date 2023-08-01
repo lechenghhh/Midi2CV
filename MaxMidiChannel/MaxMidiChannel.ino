@@ -6,7 +6,7 @@ MIDI_CREATE_DEFAULT_INSTANCE();  //MIDIライブラリを有効启用MIDI库
 //2 4 7 gate
 //3 5 6 CV
 const int LDAC = 9;  //SPI trans setting
-int note_no1 = 0;    //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
+int note_no = 0;     //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
 int note_no2 = 0;    //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
 
 int bend_range = 0;
@@ -14,18 +14,15 @@ int bend_msb = 0;
 int bend_lsb = 0;
 long after_bend_pitch = 0;
 
-byte note_on_count1 = 0;      //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
-byte note_on_count2 = 0;      //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
+byte note_on_count = 0;       //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
+byte note_on_count2 = 0;       //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
 unsigned long trigTimer = 0;  //for gate ratch
 
-byte clock_count0 = 0;
-byte clock_count1 = 0;
+byte clock_count = 0;
 byte clock_count2 = 0;
 byte clock_max = 24;  //clock_max change by knob setting
 byte clock_on_time = 0;
 int clock_rate = 0;  //knob CVin
-
-int tmp_last_note1 = -1, tmp_last_note2 = -1;
 
 int cc_mode = 0;  //用于更改当前cc映射模式
 
@@ -82,28 +79,49 @@ void loop() {
   }
 
   //-----------------------------gate ratch----------------------------
-  if (note_on_count1 != 0) {
+  if (note_on_count != 0) {
     // Serial.println("1");
     int TRIG_DEC = 20;
   }
 
   //-----------------------------midi operation----------------------------
   if (MIDI.read()) {  // 如果频道1有信号的话
+    MIDI.setInputChannel(1);
     switch (MIDI.getType()) {
-      case midi::AfterTouchPoly:
-        // if (cc_mode == 0) OUT_PWM(6, MIDI.getData2());  //3个cv映射输出力度cv
+
+      case midi::NoteOn:  //if NoteOn
+        note_on_count++;
+        trigTimer = millis();
+        // if (note_on_count == 1) {
+          note_no = MIDI.getData1() - 21;  //note number
+          int velocity = MIDI.getData2();
+          if (note_no < 0) {
+            note_no = 0;
+          } else if (note_no >= 61) {
+            note_no = 60;
+          }
+          digitalWrite(4, HIGH);                   //Gate》HIGH
+          if (cc_mode == 0) OUT_PWM(5, velocity);  //3个cv映射输出力度cv
+          OUT_CV(cv[note_no]);  //V/OCT LSB for DAC》参照
+        // }
+
         break;
-      case midi::PitchBend:
-        bend_lsb = MIDI.getData1();  //LSB
-        bend_msb = MIDI.getData2();  //MSB
-        bend_range = bend_msb;       //0 to 127
-        if (bend_range > 64) {
-          after_bend_pitch = cv[note_no1] + cv[note_no1] * (bend_range - 64) * 4 / 10000;
-          OUT_CV1(after_bend_pitch);
-        } else if (bend_range < 64) {
-          after_bend_pitch = cv[note_no1] - cv[note_no1] * (64 - bend_range) * 4 / 10000;
-          OUT_CV1(after_bend_pitch);
+
+      case midi::NoteOff:  //if NoteOff 关闭后
+
+        note_on_count--;
+        if (note_on_count == 0) {
+          // if (note_on_count % 2 == 0) {
+          digitalWrite(4, LOW);  //Gate 》LOW
         }
+        if (note_on_count == 1) {
+          // if (note_on_count % 2 == 1) {
+          digitalWrite(7, LOW);  //Gate 》LOW
+        }
+        break;
+
+      case midi::AfterTouchPoly:
+        if (cc_mode == 0) OUT_PWM(6, MIDI.getData2());  //3个cv映射输出力度cv
         break;
 
       case midi::ControlChange:
@@ -123,7 +141,6 @@ void loop() {
         switch (cc_mode) {
           case 0:
             if (MIDI.getData1() == 1) OUT_PWM(3, MIDI.getData2());
-            if (MIDI.getData1() == 2) OUT_PWM(6, MIDI.getData2());  //3个cv映射输出力度cv
             break;
           case 1:
             if (MIDI.getData1() == 13) OUT_PWM(3, MIDI.getData2());
@@ -141,94 +158,77 @@ void loop() {
             if (MIDI.getData1() == 35) OUT_PWM(6, MIDI.getData2());
             break;
         }
+
       case midi::Clock:
-        clock_count0++;
-        if (clock_count0 >= clock_max) {
-          clock_count0 = 0;
+        clock_count++;
+
+        if (clock_count >= clock_max) {
+          clock_count = 0;
         }
-        if (clock_count0 == 1) {
+
+        if (clock_count == 1) {
           digitalWrite(2, HIGH);
-        } else if (clock_count0 != 1) {
+        } else if (clock_count != 1) {
           digitalWrite(2, LOW);
         }
         break;
-      case midi::AllNotesOff:
-        clock_count1 = 0;
-        note_on_count1 = 0;
-        digitalWrite(4, LOW);  //Gate》LOW
-        clock_count2 = 0;
-        note_on_count2 = 0;
-        digitalWrite(7, LOW);  //Gate》LOW
-        break;
+
       case midi::Stop:
-        note_on_count1 = 0;
-        note_on_count2 = 0;
-        tmp_last_note1 = -1;
-        tmp_last_note2 = -1;
-        // clock_count1 = 0;
+        clock_count = 0;
         digitalWrite(4, LOW);  //Gate》LOW
-        digitalWrite(7, LOW);  //Gate》LOW
+        // digitalWrite(7, LOW);  //Gate》LOW
+        break;
+
+      case midi::PitchBend:
+        bend_lsb = MIDI.getData1();  //LSB
+        bend_msb = MIDI.getData2();  //MSB
+        bend_range = bend_msb;       //0 to 127
+
+        if (bend_range > 64) {
+          after_bend_pitch = cv[note_no] + cv[note_no] * (bend_range - 64) * 4 / 10000;
+          OUT_CV(after_bend_pitch);
+        }
+
+        else if (bend_range < 64) {
+          after_bend_pitch = cv[note_no] - cv[note_no] * (64 - bend_range) * 4 / 10000;
+          OUT_CV(after_bend_pitch);
+        }
         break;
     }
-
-    if (MIDI.getChannel() == 1) {  //MIDI CH1
-      switch (MIDI.getType()) {
-        case midi::NoteOn:  //if NoteOn
-          note_on_count1++;
-          note_no1 = MIDI.getData1() - 21;  //note number
-          tmp_last_note1 = MIDI.getData1();
-          if (note_no1 < 0) {
-            note_no1 = 0;
-          } else if (note_no1 >= 61) {
-            note_no1 = 60;
-          }
-          digitalWrite(4, HIGH);  //Gate》HIGH
-          OUT_CV1(cv[note_no1]);  //V/OCT LSB for DAC》参照
-
-          if (cc_mode == 0) OUT_PWM(5, MIDI.getData2());  //3个cv映射输出力度cv
-
-          break;
-        case midi::NoteOff:
-          // if (note_on_count1 > 0) note_on_count1--;
-          // if (note_on_count1 < 1) {
-          if (tmp_last_note1 == MIDI.getData1())
-            digitalWrite(4, LOW);  //Gate 》LOW
-          // }
-          break;
-      }
-    }
-
-    if (MIDI.getChannel() == 2) { /*MIDI CH2*/
-      switch (MIDI.getType()) {
-        case midi::NoteOn:  //if NoteOn
-
-          note_on_count2++;
+    //MIDI CH2
+    MIDI.setInputChannel(2);
+    switch (MIDI.getType()) {
+      case midi::NoteOn:  //if NoteOn
+        note_on_count2++;
+        // if (note_on_count2 == 1) {
           note_no2 = MIDI.getData1() - 21;  //note number
-          tmp_last_note2 = MIDI.getData1();
           if (note_no2 < 0) {
             note_no2 = 0;
           } else if (note_no2 >= 61) {
             note_no2 = 60;
           }
-          digitalWrite(7, HIGH);  //Gate》HIGH
-          OUT_CV2(cv[note_no2]);  //V/OCT LSB for DAC》参照
-
-          break;
-        case midi::NoteOff:  //if NoteOff 关闭后
-          // if (note_on_count2 > 0) note_on_count2--;
-          // if (note_on_count2 < 1) {
-          if (tmp_last_note2 == MIDI.getData1())
-            digitalWrite(7, LOW);  //Gate 》LOW
-          // }
-          break;
-
-      }  //MIDI CH2
+          digitalWrite(7, HIGH);                   //Gate》HIGH
+          // if (cc_mode == 0) OUT_PWM(5, velocity);  //3个cv映射输出力度cv
+          OUT_CV2(cv[note_no2]);                   //V/OCT LSB for DAC》参照
+        // }
+        break;
+      case midi::NoteOff:  //if NoteOff 关闭后
+        note_on_count2--;
+        if (note_on_count2 == 0) {
+          digitalWrite(7, LOW);  //Gate 》LOW
+        }
+        break;
+      case midi::Stop:
+        clock_count2 = 0;
+        digitalWrite(7, LOW);  //Gate》LOW
+        break;
     }
   }
 }
 
+
 //DAC_CV output
-void OUT_CV1(int cv) {
+void OUT_CV(int cv) {
   digitalWrite(LDAC, HIGH);
   digitalWrite(SS, LOW);
   SPI.transfer((cv >> 8) | 0x30);  // H0x30=OUTA/1x
