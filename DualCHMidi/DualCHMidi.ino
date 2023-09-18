@@ -108,34 +108,34 @@ void loop() {
 
       case midi::ControlChange:
         switch (MIDI.getData1()) {  //D3 D5 D6
-          case 11:
+          case 11://切换时钟DIV
           case 21:
           case 31:
             clock_rate = MIDI.getData2() >> 5;
             break;
-          case 12:
+          case 12://切换四种模式 //change cc maping in modular
           case 22:
           case 32:
-            cc_mode = MIDI.getData2() >> 5;  //一共四种模式 //change cc maping in modular
+            cc_mode = MIDI.getData2() >> 5;  
             break;
         }
 
         switch (cc_mode) {
-          case 0:
-            if (MIDI.getData1() == 1) OUT_PWM(3, MIDI.getData2());
-            if (MIDI.getData1() == 2) OUT_PWM(6, MIDI.getData2());  //3个cv映射输出力度cv
+          case 0://type=0 VEL/MOD/CC2 VEL请见Note On
+            if (MIDI.getData1() == 1) OUT_PWM(5, MIDI.getData2());
+            if (MIDI.getData1() == 2) OUT_PWM(6, MIDI.getData2());
             break;
-          case 1:
+          case 1://type=1 CC13/CC14/CC15
             if (MIDI.getData1() == 13) OUT_PWM(3, MIDI.getData2());
             if (MIDI.getData1() == 14) OUT_PWM(5, MIDI.getData2());
             if (MIDI.getData1() == 15) OUT_PWM(6, MIDI.getData2());
             break;
-          case 2:
+          case 2://type=2 CC23/CC24/CC25
             if (MIDI.getData1() == 23) OUT_PWM(3, MIDI.getData2());
             if (MIDI.getData1() == 24) OUT_PWM(5, MIDI.getData2());
             if (MIDI.getData1() == 25) OUT_PWM(6, MIDI.getData2());
             break;
-          case 3:  //音符触发模式
+          case 3://type=3 音符触发模式
             if (MIDI.getData1() == 33) OUT_PWM(3, MIDI.getData2());
             if (MIDI.getData1() == 34) OUT_PWM(5, MIDI.getData2());
             if (MIDI.getData1() == 35) OUT_PWM(6, MIDI.getData2());
@@ -185,7 +185,7 @@ void loop() {
           digitalWrite(4, HIGH);  //Gate》HIGH
           OUT_CV1(cv[note_no1]);  //V/OCT LSB for DAC》参照
 
-          if (cc_mode == 0) OUT_PWM(5, MIDI.getData2());  //3个cv映射输出力度cv
+          if (cc_mode == 0) OUT_PWM(3, MIDI.getData2());  //3个cv映射输出力度cv
 
           break;
         case midi::NoteOff:
