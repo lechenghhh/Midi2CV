@@ -6,7 +6,7 @@
 ## 功能与参数介绍:
 #### 1xTrs Midi In(可通过跳线盘切换Trs TypeA/B)
 #### 1xClock Out(Midi时钟) 另可通过cc21调整clock倍速
-#### 2xPoly Out(2复音)(CV范围0-5V)
+#### 2xPoly Out(2复音)(CV范围0-5V)(3.0版本改为midi ch1 与midi ch2 更适合音序器使用)
 #### 2xGate Out(与复音对应的门)
 #### 3xCV Out(Midi CC信息转化而来的CV 有五种模式)
 
@@ -40,6 +40,5 @@
 #### 上方工具/tools > Processror > Atmega168
 #### 注:以上操作做一次之后不用再做 除非你换了个ino打开则需要重新选择
 #### 点击左上方第二个叫做 上传 的按钮 等待右下方的提示信息直到提示 上传完成 并重新装回跳线帽 整个上传程序流程完成
-
 
 
