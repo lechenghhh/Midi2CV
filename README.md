@@ -1,20 +1,20 @@
-# Midi2CV_Trs
+# Midi2CV_Trs V3.0
 
 #### Eurorack 自研发基于Arduino nano的强大Midi2CV模块
 #### Trs Midi2CV 3HP宽度 40mm深度
 
 ## 功能与参数介绍:
 #### 1xTrs Midi In(可通过跳线盘切换Trs TypeA/B)
-#### 1xClock Out(Midi时钟) 另可通过cc21调整clock倍速
+#### 1xClock Out(Midi时钟) 另可通过cc11调整clock倍速(待测试)
 #### 2xPoly Out(2复音)(CV范围0-5V)(3.0版本改为midi ch1 与midi ch2 更适合音序器使用)
-#### 2xGate Out(与复音对应的门)
+#### 2xGate Out(与音对应的门)
 #### 3xCV Out(Midi CC信息转化而来的CV 有五种模式)
 
-## CC2CV功能详解: Midi设备上的CC11可以切换5种模式
+## CC2CV功能详解: Midi设备上的CC12可以切换5种模式
 #### 模式1: Mod->CV1 Vel->CV2 AfterTouch->CV3
-#### 模式2: CC12->CV1 CC13->CV2 CC14->CV3
-#### 模式3: CC22->CV1 CC23->CV2 CC24->CV3
-#### 模式4: CC32->CV1 CC33->CV2 CC34->CV3
+#### 模式2: CC13->CV1 CC14->CV2 CC15->CV3
+#### 模式3: CC23->CV1 CC24->CV2 CC25->CV3
+#### 模式4: CC33->CV1 CC34->CV2 CC35->CV3
 #### 模式5: Note1->CV1 Note2->CV2 Note3->CV3
 #### (以上映射关系皆可以通过程序再改变 模式也可以不局限于5个)
 
