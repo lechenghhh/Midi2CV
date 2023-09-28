@@ -146,12 +146,12 @@ void loop() {
           case 11:                  //切换时钟DIV
           case 21:
           case 31:
-            clock_rate = MIDI.getData2() >> 5;
+            clock_rate = MIDI.getData2() << 3;
             break;
           case 12:  //切换四种模式 //change cc maping in modular
           case 22:
           case 32:
-            cc_mode = MIDI.getData2() << 3;
+            cc_mode = MIDI.getData2() >> 5;
             break;
         }
 
