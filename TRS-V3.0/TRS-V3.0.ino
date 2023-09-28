@@ -151,7 +151,7 @@ void loop() {
           case 12:  //切换四种模式 //change cc maping in modular
           case 22:
           case 32:
-            cc_mode = MIDI.getData2() >> 5;
+            cc_mode = MIDI.getData2() << 3;
             break;
         }
 
@@ -175,8 +175,8 @@ void loop() {
             if (MIDI.getData1() == 34) OUT_PWM(5, MIDI.getData2());
             if (MIDI.getData1() == 35) OUT_PWM(6, MIDI.getData2());
             break;
-        } 
-        break; //ControlChange
+        }
+        break;  //ControlChange
     }
 
     if (MIDI.getChannel() == 1) {  //MIDI CH1
