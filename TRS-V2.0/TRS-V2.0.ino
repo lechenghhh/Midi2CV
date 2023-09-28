@@ -179,7 +179,7 @@ void loop() {
             if (MIDI.getData1() == 35) OUT_PWM(6, MIDI.getData2());
             break;
         }
-
+        break;
       case midi::Clock:
         clock_count++;
 

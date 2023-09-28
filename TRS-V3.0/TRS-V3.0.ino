@@ -1,6 +1,14 @@
 #include <MIDI.h>
 // #include <FlexiTimer2.h>
-#include <SPI.h>                 //DAC通信用
+#include <SPI.h>  //DAC通信用
+
+#define CLOCK_PIN 2  //CLK
+#define GATA1_PIN 4  //Gate
+#define GATA2_PIN 7
+#define CV1_PIN 3
+#define CV2_PIN 5
+#define CV3_PIN 6
+
 MIDI_CREATE_DEFAULT_INSTANCE();  //MIDIライブラリを有効启用MIDI库
 
 //2 4 7 gate
@@ -42,14 +50,14 @@ int note4[4] = { 0, 0, 0, 0 };
 void setup() {
   Serial.begin(115200);
 
-  pinMode(LDAC, OUTPUT);  //DAC trans
-  pinMode(SS, OUTPUT);    //DAC trans
-  pinMode(2, OUTPUT);     //CLK_OUT
-  pinMode(4, OUTPUT);     //CLK_OUT
-  pinMode(7, OUTPUT);     //CLK_OUT
-  pinMode(3, OUTPUT);
-  pinMode(5, OUTPUT);
-  pinMode(6, OUTPUT);
+  pinMode(LDAC, OUTPUT);       //DAC trans
+  pinMode(SS, OUTPUT);         //DAC trans
+  pinMode(CLOCK_PIN, OUTPUT);  //CLK_OUT
+  pinMode(GATA1_PIN, OUTPUT);  //CLK_OUT
+  pinMode(GATA2_PIN, OUTPUT);  //CLK_OUT
+  pinMode(CV1_PIN, OUTPUT);
+  pinMode(CV2_PIN, OUTPUT);
+  pinMode(CV3_PIN, OUTPUT);
 
   MIDI.begin(MIDI_CHANNEL_OMNI);  // MIDI CH ALL Listen
 
@@ -90,6 +98,17 @@ void loop() {
   //-----------------------------midi operation----------------------------
   if (MIDI.read()) {  // 如果频道1有信号的话
     switch (MIDI.getType()) {
+      case midi::Clock:
+        clock_count0++;
+        if (clock_count0 >= clock_max) {
+          clock_count0 = 0;
+        }
+        if (clock_count0 == 1) {
+          digitalWrite(2, HIGH);
+        } else if (clock_count0 != 1) {
+          digitalWrite(2, LOW);
+        }
+        break;
       case midi::AfterTouchPoly:
         // if (cc_mode == 0) OUT_PWM(6, MIDI.getData2());  //3个cv映射输出力度cv
         break;
@@ -103,53 +122,6 @@ void loop() {
         } else if (bend_range < 64) {
           after_bend_pitch = cv[note_no1] - cv[note_no1] * (64 - bend_range) * 4 / 10000;
           OUT_CV1(after_bend_pitch);
-        }
-        break;
-
-      case midi::ControlChange:
-        switch (MIDI.getData1()) {  //D3 D5 D6
-          case 11://切换时钟DIV
-          case 21:
-          case 31:
-            clock_rate = MIDI.getData2() >> 5;
-            break;
-          case 12://切换四种模式 //change cc maping in modular
-          case 22:
-          case 32:
-            cc_mode = MIDI.getData2() >> 5;  
-            break;
-        }
-
-        switch (cc_mode) {
-          case 0://type=0 VEL/MOD/CC2 VEL请见Note On
-            if (MIDI.getData1() == 1) OUT_PWM(5, MIDI.getData2());
-            if (MIDI.getData1() == 2) OUT_PWM(6, MIDI.getData2());
-            break;
-          case 1://type=1 CC13/CC14/CC15
-            if (MIDI.getData1() == 13) OUT_PWM(3, MIDI.getData2());
-            if (MIDI.getData1() == 14) OUT_PWM(5, MIDI.getData2());
-            if (MIDI.getData1() == 15) OUT_PWM(6, MIDI.getData2());
-            break;
-          case 2://type=2 CC23/CC24/CC25
-            if (MIDI.getData1() == 23) OUT_PWM(3, MIDI.getData2());
-            if (MIDI.getData1() == 24) OUT_PWM(5, MIDI.getData2());
-            if (MIDI.getData1() == 25) OUT_PWM(6, MIDI.getData2());
-            break;
-          case 3://type=3 音符触发模式
-            if (MIDI.getData1() == 33) OUT_PWM(3, MIDI.getData2());
-            if (MIDI.getData1() == 34) OUT_PWM(5, MIDI.getData2());
-            if (MIDI.getData1() == 35) OUT_PWM(6, MIDI.getData2());
-            break;
-        }
-      case midi::Clock:
-        clock_count0++;
-        if (clock_count0 >= clock_max) {
-          clock_count0 = 0;
-        }
-        if (clock_count0 == 1) {
-          digitalWrite(2, HIGH);
-        } else if (clock_count0 != 1) {
-          digitalWrite(2, LOW);
         }
         break;
       case midi::AllNotesOff:
@@ -169,6 +141,42 @@ void loop() {
         digitalWrite(4, LOW);  //Gate》LOW
         digitalWrite(7, LOW);  //Gate》LOW
         break;
+      case midi::ControlChange:
+        switch (MIDI.getData1()) {  //D3 D5 D6
+          case 11:                  //切换时钟DIV
+          case 21:
+          case 31:
+            clock_rate = MIDI.getData2() >> 5;
+            break;
+          case 12:  //切换四种模式 //change cc maping in modular
+          case 22:
+          case 32:
+            cc_mode = MIDI.getData2() >> 5;
+            break;
+        }
+
+        switch (cc_mode) {
+          case 0:  //type=0 VEL/MOD/CC2 VEL请见Note On
+            if (MIDI.getData1() == 1) OUT_PWM(5, MIDI.getData2());
+            if (MIDI.getData1() == 2) OUT_PWM(6, MIDI.getData2());
+            break;
+          case 1:  //type=1 CC13/CC14/CC15
+            if (MIDI.getData1() == 13) OUT_PWM(3, MIDI.getData2());
+            if (MIDI.getData1() == 14) OUT_PWM(5, MIDI.getData2());
+            if (MIDI.getData1() == 15) OUT_PWM(6, MIDI.getData2());
+            break;
+          case 2:  //type=2 CC23/CC24/CC25
+            if (MIDI.getData1() == 23) OUT_PWM(3, MIDI.getData2());
+            if (MIDI.getData1() == 24) OUT_PWM(5, MIDI.getData2());
+            if (MIDI.getData1() == 25) OUT_PWM(6, MIDI.getData2());
+            break;
+          case 3:  //type=3 音符触发模式
+            if (MIDI.getData1() == 33) OUT_PWM(3, MIDI.getData2());
+            if (MIDI.getData1() == 34) OUT_PWM(5, MIDI.getData2());
+            if (MIDI.getData1() == 35) OUT_PWM(6, MIDI.getData2());
+            break;
+        } 
+        break; //ControlChange
     }
 
     if (MIDI.getChannel() == 1) {  //MIDI CH1
@@ -185,7 +193,7 @@ void loop() {
           digitalWrite(4, HIGH);  //Gate》HIGH
           OUT_CV1(cv[note_no1]);  //V/OCT LSB for DAC》参照
 
-          if (cc_mode == 0) OUT_PWM(3, MIDI.getData2());  //3个cv映射输出力度cv
+          if (cc_mode == 0) OUT_PWM(CV1_PIN, MIDI.getData2());  //3个cv映射输出力度cv
 
           break;
         case midi::NoteOff:
@@ -198,7 +206,7 @@ void loop() {
       }
     }
 
-    if (MIDI.getChannel() == 2) { /*MIDI CH2*/
+    if (MIDI.getChannel() == 2) {  //MIDI CH2
       switch (MIDI.getType()) {
         case midi::NoteOn:  //if NoteOn
 
