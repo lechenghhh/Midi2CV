@@ -236,9 +236,9 @@ void loop() {
 
 //DAC_CV output
 void OUT_CV1(int cv1) {
-  int tmp = cv1/4;
-  analogWrite(3, tmp);
-  Serial.println(" d3");
+  int tmp = cv1 / 4;
+  analogWrite(5, tmp);
+  Serial.println(" d5");
   Serial.println(tmp);
 
   // digitalWrite(LDAC, HIGH);
@@ -251,7 +251,7 @@ void OUT_CV1(int cv1) {
 
 //DAC_CV2 output
 void OUT_CV2(int cv2) {
-  analogWrite(5, cv2 / 4);
+  analogWrite(6, cv2 / 4);
 
   // digitalWrite(LDAC, HIGH);
   // digitalWrite(SS, LOW);
@@ -262,5 +262,5 @@ void OUT_CV2(int cv2) {
 }
 
 void OUT_PWM(int pin, int cc_value) {
-  analogWrite(pin, cc_value << 1);
+  // analogWrite(pin, cc_value << 1);
 }
