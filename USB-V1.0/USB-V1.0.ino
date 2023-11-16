@@ -3,8 +3,21 @@
 
 #include <SPI.h>  //DAC通信用
 
-USBMIDI_CREATE_DEFAULT_INSTANCE();
+#define CLOCK_PIN 2  //CLK
+#define GATA1_PIN 4  //Gate
+#define GATA2_PIN 7
+#define CV1_PIN 3
+#define CV2_PIN 5
+#define CV3_PIN 6
 
+USBMIDI_CREATE_DEFAULT_INSTANCE();
+// MIDI_CREATE_DEFAULT_INSTANCE();  //MIDIライブラリを有効启用MIDI库
+
+
+
+
+//2 4 7 gate
+//3 5 6 CV
 const int LDAC = 9;  //SPI trans setting
 int note_no1 = 0;    //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
 int note_no2 = 0;    //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
@@ -40,25 +53,47 @@ int p3 = 0, p5 = 0, p6 = 0;
 int note4[4] = { 0, 0, 0, 0 };
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(115200);
-  pinMode(LDAC, OUTPUT);  //DAC trans
-  pinMode(SS, OUTPUT);    //DAC trans
-  pinMode(2, OUTPUT);     //CLK_OUT
-  pinMode(4, OUTPUT);     //CLK_OUT
-  pinMode(7, OUTPUT);     //CLK_OUT
-  pinMode(3, OUTPUT);
-  pinMode(5, OUTPUT);
-  pinMode(6, OUTPUT);
-  MIDI.begin(MIDI_CHANNEL_OMNI);
+
+  pinMode(LDAC, OUTPUT);       //DAC trans
+  pinMode(SS, OUTPUT);         //DAC trans
+  pinMode(CLOCK_PIN, OUTPUT);  //CLK_OUT
+  pinMode(GATA1_PIN, OUTPUT);  //CLK_OUT
+  pinMode(GATA2_PIN, OUTPUT);  //CLK_OUT
+  pinMode(CV1_PIN, OUTPUT);
+  pinMode(CV2_PIN, OUTPUT);
+  pinMode(CV3_PIN, OUTPUT);
+
+  MIDI.begin(MIDI_CHANNEL_OMNI);  // MIDI CH ALL Listen
 
   // SPI.begin();
   // SPI.setBitOrder(MSBFIRST);            // bit order
   // SPI.setClockDivider(SPI_CLOCK_DIV4);  // クロック(CLK)をシステムクロックの1/4で使用(16MHz/4)
-  // SPI.setDataMode(SPI_MODE0);
+  // SPI.setDataMode(SPI_MODE0);           // クロック極性０(LOW)　クロック位相０
+  delay(50);
 }
 
 void loop() {
+  // Serial.println(" ");
+  //-----------------------------clock_rate setting----------------------------
+  // clock_rate = 1;  //read knob voltage
+
+  if (clock_rate < 256) {
+    clock_max = 24;  //slow
+  } else if (clock_rate < 512 && clock_rate >= 256) {
+    clock_max = 12;
+  } else if (clock_rate < 768 && clock_rate >= 512) {
+    clock_max = 6;
+  } else if (clock_rate >= 768) {
+    clock_max = 3;  //fast
+  }
+
+  //-----------------------------gate ratch----------------------------
+  if (note_on_count1 != 0) {
+    // Serial.println("1");
+    int TRIG_DEC = 20;
+  }
+
   //-----------------------------midi operation----------------------------
   if (MIDI.read()) {  // 如果频道1有信号的话
     switch (MIDI.getType()) {
@@ -72,7 +107,7 @@ void loop() {
         } else if (clock_count0 != 1) {
           digitalWrite(2, LOW);
         }
-        // break;
+        break;
       case midi::AfterTouchPoly:
         // if (cc_mode == 0) OUT_PWM(6, MIDI.getData2());  //3个cv映射输出力度cv
         break;
@@ -82,13 +117,12 @@ void loop() {
         bend_range = bend_msb;       //0 to 127
         if (bend_range > 64) {
           after_bend_pitch = cv[note_no1] + cv[note_no1] * (bend_range - 64) * 4 / 10000;
-          // OUT_CV1(after_bend_pitch);
+          OUT_CV1(after_bend_pitch);
         } else if (bend_range < 64) {
           after_bend_pitch = cv[note_no1] - cv[note_no1] * (64 - bend_range) * 4 / 10000;
-          // OUT_CV1(after_bend_pitch);
+          OUT_CV1(after_bend_pitch);
         }
         break;
-
       case midi::AllNotesOff:
         clock_count1 = 0;
         note_on_count1 = 0;
@@ -111,7 +145,7 @@ void loop() {
           case 11:                  //切换时钟DIV
           case 21:
           case 31:
-            clock_rate = MIDI.getData2() >> 5;
+            clock_rate = MIDI.getData2() << 3;
             break;
           case 12:  //切换四种模式 //change cc maping in modular
           case 22:
@@ -141,6 +175,7 @@ void loop() {
             if (MIDI.getData1() == 35) OUT_PWM(6, MIDI.getData2());
             break;
         }
+        break;  //ControlChange
     }
 
     if (MIDI.getChannel() == 1) {  //MIDI CH1
@@ -154,24 +189,23 @@ void loop() {
           } else if (note_no1 >= 61) {
             note_no1 = 60;
           }
-          digitalWrite(13, HIGH);  //Gate》HIGH
-          // OUT_CV1(cv[note_no1]);   //V/OCT LSB for DAC》参照
+          digitalWrite(4, HIGH);  //Gate》HIGH
+          OUT_CV1(cv[note_no1]);  //V/OCT LSB for DAC》参照
 
-          if (cc_mode == 0) OUT_PWM(3, MIDI.getData2());  //3个cv映射输出力度cv
+          if (cc_mode == 0) OUT_PWM(CV1_PIN, MIDI.getData2());  //3个cv映射输出力度cv
 
           break;
         case midi::NoteOff:
           // if (note_on_count1 > 0) note_on_count1--;
           // if (note_on_count1 < 1) {
           if (tmp_last_note1 == MIDI.getData1())
-            digitalWrite(13, LOW);  //Gate 》LOW
-                                    // }
-          Serial.println("note_off");
+            digitalWrite(4, LOW);  //Gate 》LOW
+          // }
           break;
       }
     }
 
-    if (MIDI.getChannel() == 2) { /*MIDI CH2*/
+    if (MIDI.getChannel() == 2) {  //MIDI CH2
       switch (MIDI.getType()) {
         case midi::NoteOn:  //if NoteOn
 
@@ -184,7 +218,7 @@ void loop() {
             note_no2 = 60;
           }
           digitalWrite(7, HIGH);  //Gate》HIGH
-          // OUT_CV2(cv[note_no2]);  //V/OCT LSB for DAC》参照
+          OUT_CV2(cv[note_no2]);  //V/OCT LSB for DAC》参照
 
           break;
         case midi::NoteOff:  //if NoteOff 关闭后
@@ -199,10 +233,14 @@ void loop() {
     }
   }
 }
+
 //DAC_CV output
-void OUT_CV1(int cv) {
-  Serial.print("OUT_CV1 ");
-  Serial.println(cv);
+void OUT_CV1(int cv1) {
+  int tmp = cv1 / 4;
+  analogWrite(5, tmp);
+  Serial.println(" d5");
+  Serial.println(tmp);
+
   // digitalWrite(LDAC, HIGH);
   // digitalWrite(SS, LOW);
   // SPI.transfer((cv >> 8) | 0x30);  // H0x30=OUTA/1x
@@ -213,8 +251,8 @@ void OUT_CV1(int cv) {
 
 //DAC_CV2 output
 void OUT_CV2(int cv2) {
-  Serial.print("OUT_CV2 ");
-  Serial.println(cv2);
+  analogWrite(6, cv2 / 4);
+
   // digitalWrite(LDAC, HIGH);
   // digitalWrite(SS, LOW);
   // SPI.transfer((cv2 >> 8) | 0xB0);  // H0xB0=OUTB/1x
@@ -222,10 +260,7 @@ void OUT_CV2(int cv2) {
   // digitalWrite(SS, HIGH);
   // digitalWrite(LDAC, LOW);
 }
-void OUT_PWM(int pin, int cc_value) {
-  Serial.print(pin);
-  Serial.print(" OUT_PWM ");
-  Serial.println(cc_value);
 
-  analogWrite(pin, cc_value << 1);
+void OUT_PWM(int pin, int cc_value) {
+  // analogWrite(pin, cc_value << 1);
 }
