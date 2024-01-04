@@ -13,18 +13,18 @@ MIDI_CREATE_DEFAULT_INSTANCE();  //MIDIライブラリを有効启用MIDI库
 
 //2 4 7 gate
 //3 5 6 CV
-const int LDAC = 9;  //SPI trans setting
-int note_no1 = 0;    //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
-int note_no2 = 0;    //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
+const byte LDAC = 9;  //SPI trans setting
+byte note_no1 = 0;    //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
+byte note_no2 = 0;    //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
 
-int bend_range = 0;
-int bend_msb = 0;
-int bend_lsb = 0;
-long after_bend_pitch = 0;
+byte bend_range = 0;
+byte bend_msb = 0;
+byte bend_lsb = 0;
+int after_bend_pitch = 0;
 
-byte note_on_count1 = 0;      //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
-byte note_on_count2 = 0;      //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
-unsigned long trigTimer = 0;  //for gate ratch
+byte note_on_count1 = 0;  //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
+byte note_on_count2 = 0;  //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
+// unsigned byte trigTimer = 0;  //for gate ratch
 
 byte clock_count0 = 0;
 byte clock_count1 = 0;
@@ -33,19 +33,20 @@ byte clock_max = 24;  //clock_max change by knob setting
 byte clock_on_time = 0;
 int clock_rate = 0;  //knob CVin
 
-int tmp_last_note1 = -1, tmp_last_note2 = -1;
+byte tmp_last_note1 = -1, tmp_last_note2 = -1;
 
-int cc_mode = 0;  //用于更改当前cc映射模式
-
-const long cv[61] = {  // V/OCT LSB for DAC
-  0, 68, 137, 205, 273, 341, 410, 478, 546, 614, 683, 751,
-  819, 887, 956, 1024, 1092, 1161, 1229, 1297, 1365, 1434, 1502, 1570,
-  1638, 1707, 1775, 1843, 1911, 1980, 2048, 2116, 2185, 2253, 2321, 2389,
-  2458, 2526, 2594, 2662, 2731, 2799, 2867, 2935, 3004, 3072, 3140, 3209,
-  3277, 3345, 3413, 3482, 3550, 3618, 3686, 3755, 3823, 3891, 3959, 4028, 4095
-};
-int p3 = 0, p5 = 0, p6 = 0;
-int note4[4] = { 0, 0, 0, 0 };
+byte cc_mode = 0;         //用于更改当前cc映射模式
+float OCT_CONST = 68.25;  // V/OCT 常量
+// const int V_OCT[61] = {   // V/OCT LSB for DAC
+//   0, 68, 137, 205, 273, 341, 410, 478, 546, 614, 683, 751,
+//   819, 887, 956, 1024, 1092, 1161, 1229, 1297, 1365, 1434, 1502, 1570,
+//   1638, 1707, 1775, 1843, 1911, 1980, 2048, 2116, 2185, 2253, 2321, 2389,
+//   2458, 2526, 2594, 2662, 2731, 2799, 2867, 2935, 3004, 3072, 3140, 3209,
+//   3277, 3345, 3413, 3482, 3550, 3618, 3686, 3755, 3823, 3891, 3959, 4028,
+//   4095
+// };
+// int p3 = 0, p5 = 0, p6 = 0;
+// int note4[4] = { 0, 0, 0, 0 };
 
 void setup() {
   Serial.begin(115200);
@@ -117,10 +118,12 @@ void loop() {
         bend_msb = MIDI.getData2();  //MSB
         bend_range = bend_msb;       //0 to 127
         if (bend_range > 64) {
-          after_bend_pitch = cv[note_no1] + cv[note_no1] * (bend_range - 64) * 4 / 10000;
+          // after_bend_pitch = V_OCT[note_no1] + V_OCT[note_no1] * (bend_range - 64) * 4 / 10000;
+          after_bend_pitch = OCT_CONST * note_no1 + OCT_CONST * note_no1 * (bend_range - 64) * 4 / 10000;
           OUT_CV1(after_bend_pitch);
         } else if (bend_range < 64) {
-          after_bend_pitch = cv[note_no1] - cv[note_no1] * (64 - bend_range) * 4 / 10000;
+          // after_bend_pitch = V_OCT[note_no1] - V_OCT[note_no1] * (64 - bend_range) * 4 / 10000;
+          after_bend_pitch = OCT_CONST * note_no1 - OCT_CONST * note_no1 * (64 - bend_range) * 4 / 10000;
           OUT_CV1(after_bend_pitch);
         }
         break;
@@ -191,7 +194,8 @@ void loop() {
             note_no1 = 60;
           }
           digitalWrite(4, HIGH);  //Gate》HIGH
-          OUT_CV1(cv[note_no1]);  //V/OCT LSB for DAC》参照
+          // OUT_CV1(V_OCT[note_no1]);  //V/OCT LSB for DAC》参照
+          OUT_CV1(OCT_CONST * note_no1);  //V/OCT LSB for DAC》参照
 
           if (cc_mode == 0) OUT_PWM(CV1_PIN, MIDI.getData2());  //3个cv映射输出力度cv
 
@@ -219,7 +223,8 @@ void loop() {
             note_no2 = 60;
           }
           digitalWrite(7, HIGH);  //Gate》HIGH
-          OUT_CV2(cv[note_no2]);  //V/OCT LSB for DAC》参照
+          // OUT_CV2(V_OCT[note_no2]);  //V/OCT LSB for DAC》参照
+          OUT_CV2(OCT_CONST * note_no2);  //V/OCT LSB for DAC》参照
 
           break;
         case midi::NoteOff:  //if NoteOff 关闭后
