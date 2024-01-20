@@ -252,7 +252,8 @@ void OUT_CV1(int cv1) {
 //DAC_CV2 output
 void OUT_CV2(int cv2) {
   analogWrite(6, cv2 / 4);
-
+  Serial.println(" d6");
+  Serial.println(cv2 / 4);
   // digitalWrite(LDAC, HIGH);
   // digitalWrite(SS, LOW);
   // SPI.transfer((cv2 >> 8) | 0xB0);  // H0xB0=OUTB/1x
