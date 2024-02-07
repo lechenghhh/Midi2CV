@@ -193,11 +193,10 @@ void loop() {
           } else if (note_no1 >= 61) {
             note_no1 = 60;
           }
-          digitalWrite(4, HIGH);  //Gate》HIGH
           // OUT_CV1(V_OCT[note_no1]);  //V/OCT LSB for DAC》参照
-          OUT_CV1(OCT_CONST * note_no1);  //V/OCT LSB for DAC》参照
-
           if (cc_mode == 0) OUT_PWM(CV1_PIN, MIDI.getData2());  //3个cv映射输出力度cv
+          OUT_CV1(OCT_CONST * note_no1);                        //V/OCT LSB for DAC》参照
+          digitalWrite(4, HIGH);                                //Gate》HIGH
 
           break;
         case midi::NoteOff:
@@ -222,9 +221,9 @@ void loop() {
           } else if (note_no2 >= 61) {
             note_no2 = 60;
           }
-          digitalWrite(7, HIGH);  //Gate》HIGH
           // OUT_CV2(V_OCT[note_no2]);  //V/OCT LSB for DAC》参照
           OUT_CV2(OCT_CONST * note_no2);  //V/OCT LSB for DAC》参照
+          digitalWrite(7, HIGH);          //Gate》HIGH
 
           break;
         case midi::NoteOff:  //if NoteOff 关闭后
