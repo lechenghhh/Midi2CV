@@ -95,7 +95,7 @@ void loop() {
 
       case midi::NoteOn:  //if NoteOn
         poly_on_count++;
-        trigTimer = millis();
+        // trigTimer = millis();
         if (poly_on_count == 1) {
           // if (poly_on_count % 2 == 1) {
           poly_on = MIDI.getData1() - 21;  //note number
