@@ -160,8 +160,7 @@ void loop() {
 
         switch (cc_mode) {
           case 0:  //type=0 VEL/MOD/CC2 VEL请见Note On
-            if (MIDI.getData1() == 1) OUT_PWM(CV2_PIN, MIDI.getData2());
-            if (MIDI.getData1() == 2) OUT_PWM(CV3_PIN, MIDI.getData2());
+            if (MIDI.getData1() == 1) OUT_PWM(CV3_PIN, MIDI.getData2());
             break;
           case 1:  //type=1 CC13/CC14/CC15
             if (MIDI.getData1() == 13) OUT_PWM(CV1_PIN, MIDI.getData2());
@@ -194,8 +193,8 @@ void loop() {
             note_no1 = 60;
           }
           // OUT_CV1(V_OCT[note_no1]);  //V/OCT LSB for DAC》参照
-          if (cc_mode == 0) OUT_PWM(CV1_PIN, MIDI.getData2());  //3个cv映射输出力度cv
           OUT_CV1(OCT_CONST * note_no1);                        //V/OCT LSB for DAC》参照
+          if (cc_mode == 0) OUT_PWM(CV1_PIN, MIDI.getData2());  //3个cv映射输出力度cv
           digitalWrite(4, HIGH);                                //Gate》HIGH
 
           break;
@@ -222,8 +221,9 @@ void loop() {
             note_no2 = 60;
           }
           // OUT_CV2(V_OCT[note_no2]);  //V/OCT LSB for DAC》参照
-          OUT_CV2(OCT_CONST * note_no2);  //V/OCT LSB for DAC》参照
-          digitalWrite(7, HIGH);          //Gate》HIGH
+          OUT_CV2(OCT_CONST * note_no2);                        //V/OCT LSB for DAC》参照
+          if (cc_mode == 0) OUT_PWM(CV2_PIN, MIDI.getData2());  //3个cv映射输出力度cv
+          digitalWrite(7, HIGH);                                //Gate》HIGH
 
           break;
         case midi::NoteOff:  //if NoteOff 关闭后

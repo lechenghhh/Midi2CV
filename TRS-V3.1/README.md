@@ -11,7 +11,7 @@
 #### 3xCV Out(Midi CC信息转化而来的CV 有五种模式)
 
 ## CC2CV功能详解: Midi设备上的CC12可以切换5种模式(映射关系适用于TRS-V3.0)
-#### 模式1: Vel->CV1  Mod->CV2  CC2->CV3
+#### 模式1: Vel(ch1)->CV1  Vel(ch2)->CV2  Mod->CV3
 #### 模式2: CC13->CV1 CC14->CV2 CC15->CV3
 #### 模式3: CC23->CV1 CC24->CV2 CC25->CV3
 #### 模式4: CC33->CV1 CC34->CV2 CC35->CV3
