@@ -66,7 +66,14 @@ void setup() {
   SPI.setBitOrder(MSBFIRST);            // bit order
   SPI.setClockDivider(SPI_CLOCK_DIV4);  // クロック(CLK)をシステムクロックの1/4で使用(16MHz/4)
   SPI.setDataMode(SPI_MODE0);           // クロック極性０(LOW)　クロック位相０
-  delay(50);
+
+  digitalWrite(CLOCK_PIN, HIGH);
+  digitalWrite(GATA1_PIN, HIGH);
+  digitalWrite(GATA2_PIN, HIGH);
+  delay(2000);
+  digitalWrite(CLOCK_PIN, LOW);  //开机启动 三秒led显示
+  digitalWrite(GATA1_PIN, LOW);  //开机启动 三秒led显示
+  digitalWrite(GATA2_PIN, LOW);  //开机启动 三秒led显示
 
   // FlexiTimer2::set(5, 1.0 / 100000, timer_count);  // 50usec/count
   // FlexiTimer2::start();

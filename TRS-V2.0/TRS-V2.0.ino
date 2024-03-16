@@ -45,13 +45,17 @@ void setup() {
   pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
 
+
   MIDI.begin(1);  // MIDI CH1をlisten
 
   SPI.begin();
   SPI.setBitOrder(MSBFIRST);            // bit order
   SPI.setClockDivider(SPI_CLOCK_DIV4);  // クロック(CLK)をシステムクロックの1/4で使用(16MHz/4)
   SPI.setDataMode(SPI_MODE0);           // クロック極性０(LOW)　クロック位相０
-  delay(50);
+
+  digitalWrite(2, HIGH);
+  delay(3000);
+  digitalWrite(2, LOW);  //开机启动 三秒led显示
 
   // FlexiTimer2::set(5, 1.0 / 100000, timer_count);  // 50usec/count
   // FlexiTimer2::start();
