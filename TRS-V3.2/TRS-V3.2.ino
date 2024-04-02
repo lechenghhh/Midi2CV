@@ -29,11 +29,9 @@ byte note_on_count1 = 0;  //当多个音符打开且其中一个音符关闭时�
 byte note_on_count2 = 0;  //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
 byte poly_on_count = 0;   //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
 byte clock_count0 = 0;
-byte clock_count1 = 0;
-byte clock_count2 = 0;
 byte clock_max = 24;  //clock_max change by knob setting
-byte clock_on_time = 0;
 int clock_rate = 0;  //knob CVin
+int clock_div = 1;  //knob CVin
 byte tmp_last_note1 = -1, tmp_last_note2 = -1;
 byte cc_mode = 0;  //用于更改当前cc映射模式
 byte Master = 1;
@@ -78,6 +76,7 @@ void setup() {
   if (Master == 0) {
     ch1 = 3;
     ch2 = 4;
+    clock_div=2;
   }
 
   digitalWrite(CLOCK_PIN, HIGH);
@@ -98,14 +97,15 @@ void setup() {
 void loop() {
   // Serial.println(" ");
   //-----------------------------clock_rate setting----------------------------
+
   if (clock_rate < 256) {
-    clock_max = 24;  //slow
+    clock_max = 24*clock_div;  //slow
   } else if (clock_rate < 512 && clock_rate >= 256) {
-    clock_max = 12;
+    clock_max = 12*clock_div;
   } else if (clock_rate < 768 && clock_rate >= 512) {
-    clock_max = 6;
+    clock_max = 6*clock_div;
   } else if (clock_rate >= 768) {
-    clock_max = 3;  //fast
+    clock_max = 3*clock_div;  //fast
   }
 
   //-----------------------------gate ratch----------------------------
@@ -163,10 +163,10 @@ void loop() {
         }
         break;
       case midi::AllNotesOff:
-        clock_count1 = 0;
+        clock_count0 = 0;
         note_on_count1 = 0;
         digitalWrite(4, LOW);  //Gate》LOW
-        clock_count2 = 0;
+        clock_count0 = 0;
         note_on_count2 = 0;
         digitalWrite(7, LOW);  //Gate》LOW
         poly_on_count = 0;
@@ -178,7 +178,7 @@ void loop() {
         tmp_last_note2 = -1;
         poly_on_count = 0;
 
-        // clock_count1 = 0;
+        clock_count0 = 0;
         digitalWrite(4, LOW);  //Gate》LOW
         digitalWrite(7, LOW);  //Gate》LOW
         break;
