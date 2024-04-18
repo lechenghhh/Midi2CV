@@ -80,7 +80,7 @@ void setup() {
   // if (digitalRead(CONFIG1_PIN) == 0) cc_mode = 1;  //读取d8跳线帽 默认1 插上0 如果插上给则默认进入
   // if (digitalRead(CONFIG2_PIN) == 0) cc_mode = 2;  //读取d12跳线帽 默认1 插上0 如果插上给则默认进入
   cc_mode = 2;
-  
+
   digitalWrite(CLOCK_PIN, HIGH);
   digitalWrite(GATE1_PIN, HIGH);
   digitalWrite(GATE2_PIN, HIGH);
@@ -200,9 +200,12 @@ void controlChange() {
             break;
           case 21:  //seq pitch
             seq_pitch[seq_select] = MIDI.getData2() >> 1;
+            // int tmppitch = MIDI.getData2() >> 1;
+            if (seq_pitch[seq_select] > 60) seq_pitch[seq_select] = 60;
+            // seq_pitch[seq_select] = tmppitch;
             break;
           case 22:  //gate pitch
-            seq_gate[seq_select] = MIDI.getData2() >> 1;
+            seq_gate[seq_select] = MIDI.getData2() >> 6;
             break;
           case 23:  //vel pitch
             seq_vel[seq_select] = MIDI.getData2() >> 1;
@@ -212,30 +215,29 @@ void controlChange() {
             clock_max = 24 * clock_div / clock_rate;
             break;
           case 25:  //调整seq length //length范围:1-16
-            seq_length = (MIDI.getData2() >> 6) + 1;
+            seq_length = (MIDI.getData2() >> 3) + 1;
             break;
           case 26:  //page 预留
             break;
           case 27:  //调整loop mode //范围0-3
-            seq_loopmode = MIDI.getData2() >> 8;
+            seq_loopmode = MIDI.getData2() >> 4;
             break;
           case 28:  //调整播放状态 //范围0-3
-            seq_state = MIDI.getData2() >> 8;
+            seq_state = MIDI.getData2() >> 4;
             break;
         }
         if (100 < MIDI.getData1() && MIDI.getData1() < 117) {
-          seq_select = MIDI.getData1() - 100;
+          seq_select = MIDI.getData1() - 101;
         }
         break;  //ControlChange
     }
   }
 }
 
-void sequencerNext() {  //音序器执行下一步
-
+void sequencerNext() {                              //音序器执行下一步
   OUT_CV2(OCT_CONST * seq_pitch[seq_position]);     //V/OCT LSB for DAC》参照
   digitalWrite(GATE2_PIN, seq_gate[seq_position]);  //GATE
-  OUT_PWM(CV2_PIN, seq_pitch[seq_position]);        //VEL
+  OUT_PWM(CV2_PIN, seq_vel[seq_position]);          //VEL
 
   //播放状态控制
   if (seq_state == 0) {
