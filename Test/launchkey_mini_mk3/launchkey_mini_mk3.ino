@@ -197,28 +197,28 @@ void controlChange() {
           case 1:  //输出mod转化的CV
             OUT_PWM(CV3_PIN, MIDI.getData2());
             break;
-          case 11:  //seq pitch
+          case 21:  //seq pitch
             seq_pitch[seq_select] = MIDI.getData2() >> 1;
             break;
-          case 12:  //gate pitch
+          case 22:  //gate pitch
             seq_gate[seq_select] = MIDI.getData2() >> 1;
             break;
-          case 13:  //vel pitch
+          case 23:  //vel pitch
             seq_vel[seq_select] = MIDI.getData2() >> 1;
             break;
-          case 14:  //切换时钟div //clock_rate setting
+          case 24:  //切换时钟div //clock_rate setting
             clock_rate = MIDI.getData2() >> 5;
             clock_max = 24 * clock_div / clock_rate;
             break;
-          case 15:  //调整seq length //length范围:1-16
+          case 25:  //调整seq length //length范围:1-16
             seq_length = (MIDI.getData2() >> 6) + 1;
             break;
-          case 16:  //page 预留
+          case 26:  //page 预留
             break;
-          case 17:  //调整loop mode //范围0-3
+          case 27:  //调整loop mode //范围0-3
             seq_loopmode = MIDI.getData2() >> 8;
             break;
-          case 18:  //调整播放状态 //范围0-3
+          case 28:  //调整播放状态 //范围0-3
             seq_state = MIDI.getData2() >> 8;
             break;
         }
