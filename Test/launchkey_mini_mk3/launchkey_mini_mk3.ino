@@ -234,19 +234,35 @@ void controlChange() {
   }
 }
 
-void sequencerNext() {                              //音序器执行下一步
-  OUT_CV2(OCT_CONST * seq_pitch[seq_position]);     //V/OCT LSB for DAC》参照
-  digitalWrite(GATE2_PIN, seq_gate[seq_position]);  //GATE
-  OUT_PWM(CV2_PIN, seq_vel[seq_position]);          //VEL
+void sequencerNext() {  //音序器执行下一步
 
-  //播放状态控制
-  if (seq_state == 0) {
+  int tmp_position = 0;
+  switch (seq_loopmode) {
+    default:  //正序
+      tmp_position = seq_position;
+      break;
+    case 1:  //倒序
+      tmp_position = seq_length - seq_position - 1;
+      break;
+    case 2:  //随机1
+      tmp_position = random(0, seq_length - 1);
+      break;
+    case 3:  //随机2 后一半随机播放
+      tmp_position = random(seq_length / 2, seq_length - 1);
+      break;
+  }
+  digitalWrite(GATE2_PIN, seq_gate[tmp_position]);  //GATE
+  OUT_CV2(OCT_CONST * seq_pitch[tmp_position]);     //V/OCT LSB for DAC》参照
+  OUT_PWM(CV2_PIN, seq_vel[tmp_position]);          //VEL
+
+  if (seq_state == 0) {  ////播放状态控制 播放
     seq_position++;
     if (seq_position >= seq_length) seq_position = 0;
   }
-  if (seq_state == 3) {
+  if (seq_state == 3) {  ////播放状态控制 停止
     seq_position = 0;
   }
+  // digitalWrite(GATE2_PIN, Low);  //TRIG 增加此行则表示触发
 }
 
 void firstChannel() {
