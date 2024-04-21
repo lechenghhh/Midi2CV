@@ -46,14 +46,14 @@ float OCT_CONST = 68.25;  // V/OCT 常量
 // };
 // int p3 = 0, p5 = 0, p6 = 0;
 // int note4[4] = { 0, 0, 0, 0 };
-byte seq_pitch[16] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-byte seq_gate[16] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-byte seq_vel[16] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-byte seq_bpm = 0;       //音序器内部速度
-byte seq_length = 8;    //音序器长度
+byte seq_pitch[64] = { 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24 };
+byte seq_gate[64] = { 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63 };
+byte seq_vel[64] = { 0 };
+byte seq_bpm = 0;       //音序器内部速度 暂不可用
 byte seq_position = 0;  //音序器下标
-byte seq_loopmode = 0;  //0||1:顺序2:倒序3:随机
-byte seq_state = 1;     //0:播放 1|2:暂停 3停止
+byte seq_length = 8;    //音序器长度
+byte seq_loopmode = 0;  //0:1:倒序2/3:随机
+byte seq_state = 1;     //0:播放 1/2:暂停 3停止
 byte seq_select = 1;    //当前选中的音序1-16
 
 void setup() {
@@ -205,10 +205,10 @@ void controlChange() {
             // seq_pitch[seq_select] = tmppitch;
             break;
           case 22:  //gate pitch
-            seq_gate[seq_select] = MIDI.getData2() >> 6;
+            seq_gate[seq_select] = MIDI.getData2() >> 1;
             break;
           case 23:  //vel pitch
-            seq_vel[seq_select] = MIDI.getData2() >> 1;
+            seq_vel[seq_select] = MIDI.getData2();
             break;
           case 24:  //切换时钟div //clock_rate setting
             clock_rate = MIDI.getData2() >> 5;
@@ -251,9 +251,9 @@ void sequencerNext() {  //音序器执行下一步
       tmp_position = random(seq_length / 2, seq_length - 1);
       break;
   }
-  digitalWrite(GATE2_PIN, seq_gate[tmp_position]);  //GATE
-  OUT_CV2(OCT_CONST * seq_pitch[tmp_position]);     //V/OCT LSB for DAC》参照
-  OUT_PWM(CV2_PIN, seq_vel[tmp_position]);          //VEL
+  digitalWrite(GATE2_PIN, seq_gate[tmp_position] > 32 ? HIGH : LOW);  //GATE
+  OUT_CV2(OCT_CONST * seq_pitch[tmp_position]);                       //V/OCT LSB for DAC》参照
+  OUT_PWM(CV2_PIN, seq_vel[tmp_position]);                            //VEL
 
   if (seq_state == 0) {  ////播放状态控制 播放
     seq_position++;
@@ -262,7 +262,7 @@ void sequencerNext() {  //音序器执行下一步
   if (seq_state == 3) {  ////播放状态控制 停止
     seq_position = 0;
   }
-  // digitalWrite(GATE2_PIN, Low);  //TRIG 增加此行则表示触发
+  digitalWrite(GATE2_PIN, LOW);  //TRIG 增加此行则表示触发
 }
 
 void firstChannel() {
@@ -384,6 +384,6 @@ void OUT_CV2(int cv2) {
   digitalWrite(LDAC, LOW);
 }
 
-void OUT_PWM(int pin, int cc_value) {
+void OUT_PWM(int pin, int cc_value) {  //pwm 0-255
   analogWrite(pin, cc_value << 1);
 }
