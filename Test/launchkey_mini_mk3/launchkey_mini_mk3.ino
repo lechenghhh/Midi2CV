@@ -220,10 +220,10 @@ void controlChange() {
           case 26:  //page 预留
             break;
           case 27:  //调整loop mode //范围0-3
-            seq_loopmode = MIDI.getData2() >> 4;
+            seq_loopmode = MIDI.getData2() >> 5;
             break;
           case 28:  //调整播放状态 //范围0-3
-            seq_state = MIDI.getData2() >> 4;
+            seq_state = MIDI.getData2() >> 5;
             break;
         }
         if (100 < MIDI.getData1() && MIDI.getData1() < 117) {
