@@ -1,4 +1,4 @@
-# Midi2CV_Trs V3.0
+# Midi2CV_Trs V4.0
 
 Eurorack 自研发基于Arduino nano的强大Midi2CV模块  
 Trs Midi2CV 3HP宽度 40mm深度  
@@ -11,7 +11,7 @@ Trs Midi2CV 3HP宽度 40mm深度
 2xGate Out(与音对应的门)  
 3xCV Out(Midi CC信息转化而来的CV 有五种模式)  
 
-## Midi发送设备上的CC11可以切换以下4种模式  
+## Midi发送设备上的CC10可以切换以下4种模式  
 0.      模式名称      Clock       Note1         Gate1           Note2         Gate2         CV1         CV2       CV3
 1.      通道1/2模式   Clock       Ch1Note       Ch1NoteOn       Ch2Note       Ch2NoteOn     Vel1        Vel2      Mod
 2.      通道3/4模式   Clock1/2    Ch3Note       Ch3NoteOn       Ch4Note       Ch4NoteOn     Vel1        Vel2      Mod
