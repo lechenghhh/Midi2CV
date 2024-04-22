@@ -235,8 +235,8 @@ void controlChange() {
 }
 
 void sequencerNext() {  //音序器执行下一步
-
-  int tmp_position = 0;
+  //播放模式下标计算
+  int tmp_position = 0;  //当前播放模式下的播放顺序
   switch (seq_loopmode) {
     default:  //正序
       tmp_position = seq_position;
@@ -251,17 +251,33 @@ void sequencerNext() {  //音序器执行下一步
       tmp_position = random(seq_length / 2, seq_length - 1);
       break;
   }
-  digitalWrite(GATE2_PIN, seq_gate[tmp_position] > 32 ? HIGH : LOW);  //GATE
-  OUT_CV2(OCT_CONST * seq_pitch[tmp_position]);                       //V/OCT LSB for DAC》参照
-  OUT_PWM(CV2_PIN, seq_vel[tmp_position]);                            //VEL
+  //gate随机功能判断
+  byte tmp_gate = seq_gate[tmp_position] >> 3;  //得到0-7
+  switch (tmp_gate) {
+    default:  //1-6随机
+      if (random(0, tmp_gate) > 3) digitalWrite(GATE2_PIN, HIGH);
+      else digitalWrite(GATE2_PIN, LOW);
+      break;
+    case 0:  //低电平
+      digitalWrite(GATE2_PIN, LOW);
+      break;
+    case 7:  //高电平
+      digitalWrite(GATE2_PIN, HIGH);
+      break;
+  }
+  // digitalWrite(GATE2_PIN, seq_gate[tmp_position] > 32 ? HIGH : LOW);  //GATE 大于32高电平 否则低电平
+  OUT_CV2(OCT_CONST * seq_pitch[tmp_position]);  //V/OCT LSB for DAC》参照
+  OUT_PWM(CV2_PIN, seq_vel[tmp_position]);       //VEL
 
-  if (seq_state == 0) {  ////播放状态控制 播放
+  //播放状态控制
+  if (seq_state == 0) {  // 播放
     seq_position++;
     if (seq_position >= seq_length) seq_position = 0;
   }
-  if (seq_state == 3) {  ////播放状态控制 停止
+  if (seq_state == 3) {  // 停止
     seq_position = 0;
   }
+  //触发模式恢复触发
   digitalWrite(GATE2_PIN, LOW);  //TRIG 增加此行则表示触发
 }
 
