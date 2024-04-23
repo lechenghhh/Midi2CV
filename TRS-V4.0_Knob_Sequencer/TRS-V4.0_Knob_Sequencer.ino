@@ -175,7 +175,6 @@ void controlChange() {
         digitalWrite(GATE2_PIN, LOW);  //Gate》LOW
         break;
       case midi::ControlChange:
-        String view_str = "";
         switch (MIDI.getData1()) {
           case 10:  //切换四种模式 //change cc maping in modular
             cc_mode = MIDI.getData2() >> 5;
@@ -196,56 +195,35 @@ void controlChange() {
               ch1 = 1;
               ch2 = 2;
             }
-            Serial.println("cc_mode: " + cc_mode);
             break;
           case 1:  //输出mod转化的CV
             OUT_PWM(CV3_PIN, MIDI.getData2());
-            Serial.println("mod w: " + MIDI.getData2());
             break;
           case 21:  //seq pitch
             seq_pitch[seq_select] = MIDI.getData2() >> 1;
             if (seq_pitch[seq_select] > 60) seq_pitch[seq_select] = 60;
-
-            for (int i = 0; i < seq_length; i++) view_str += seq_pitch[i] + " ";
-            Serial.println(view_str + " pitch " + "select: " + seq_select);
             break;
           case 22:  //gate pitch
             seq_gate[seq_select] = MIDI.getData2() >> 1;
-
-            for (int i = 0; i < seq_length; i++) view_str += seq_gate[i] + " ";
-            Serial.println(view_str + " gate " + "select: " + seq_select);
             break;
           case 23:  //vel pitch
             seq_vel[seq_select] = MIDI.getData2();
-
-            for (int i = 0; i < seq_length; i++) view_str += seq_vel[i] + " ";
-            Serial.println(view_str + " vel " + "select: " + seq_select);
             break;
           case 24:  //切换时钟div //clock_rate setting
             clock_rate = MIDI.getData2() >> 5;
             clock_max = 24 * clock_div / clock_rate;
-
-            Serial.println("clock_rate: " + clock_rate);
             break;
           case 25:  //调整seq length //length范围:1-16
             seq_length = (MIDI.getData2() >> 3) + 1;
-
-            Serial.println("length: " + seq_length);
             break;
           case 26:  //page 预留
             seq_page = MIDI.getData2() >> 8;
-
-            Serial.println("page: " + seq_page);
             break;
           case 27:  //调整loop mode //范围0-3
             seq_loopmode = MIDI.getData2() >> 5;
-
-            Serial.println("loopmode: " + seq_loopmode);
             break;
           case 28:  //调整播放状态 //范围0-3
             seq_state = MIDI.getData2() >> 5;
-
-            Serial.println("state: " + seq_state);
             break;
         }
         if (100 < MIDI.getData1() && MIDI.getData1() < 117) {
@@ -299,8 +277,22 @@ void sequencerNext() {  //音序器执行下一步
   if (seq_state == 3) {  // 停止
     seq_position = 0;
   }
+  sequencerView(tmp_position);  //音序器视图
   //触发模式恢复触发
   digitalWrite(GATE2_PIN, LOW);  //TRIG 增加此行则表示触发
+}
+
+void sequencerView(int tmp_position) {  //音序器视图
+  String view_str = "";
+  for (int i = 0; i < seq_length; i++) view_str += seq_pitch[i] + " ";
+  view_str += " cc :" + cc_mode;
+  view_str += " pos:" + tmp_position;
+  view_str += " rat:" + clock_rate;
+  view_str += " len:" + seq_length;
+  view_str += " pag:" + seq_page;
+  view_str += " mod:" + seq_loopmode;
+  view_str += " ste:" + seq_state;
+  Serial.println(view_str);  //音序器视图发送
 }
 
 void firstChannel() {
