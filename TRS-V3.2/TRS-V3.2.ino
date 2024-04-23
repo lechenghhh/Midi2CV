@@ -48,7 +48,7 @@ float OCT_CONST = 68.25;  // V/OCT 常量
 // int note4[4] = { 0, 0, 0, 0 };
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(31250);
 
   pinMode(LDAC, OUTPUT);       //DAC trans
   pinMode(SS, OUTPUT);         //DAC trans

@@ -48,7 +48,7 @@ int p3 = 0, p5 = 0, p6 = 0;
 int note4[4] = { 0, 0, 0, 0 };
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(31250);
 
   pinMode(LDAC, OUTPUT);       //DAC trans
   pinMode(SS, OUTPUT);         //DAC trans
