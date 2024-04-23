@@ -52,12 +52,13 @@ byte seq_vel[64] = { 0 };
 byte seq_bpm = 0;       //音序器内部速度 暂不可用
 byte seq_position = 0;  //音序器下标
 byte seq_length = 8;    //音序器长度
+byte seq_page = 0;      //音序器页码
 byte seq_loopmode = 0;  //0:1:倒序2/3:随机
 byte seq_state = 1;     //0:播放 1/2:暂停 3停止
 byte seq_select = 1;    //当前选中的音序1-16
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(31250);  //midi协议的波特率就是31.25k 所以这里也要使用否则乱码
 
   pinMode(LDAC, OUTPUT);       //DAC trans
   pinMode(SS, OUTPUT);         //DAC trans
@@ -200,9 +201,7 @@ void controlChange() {
             break;
           case 21:  //seq pitch
             seq_pitch[seq_select] = MIDI.getData2() >> 1;
-            // int tmppitch = MIDI.getData2() >> 1;
             if (seq_pitch[seq_select] > 60) seq_pitch[seq_select] = 60;
-            // seq_pitch[seq_select] = tmppitch;
             break;
           case 22:  //gate pitch
             seq_gate[seq_select] = MIDI.getData2() >> 1;
@@ -218,6 +217,7 @@ void controlChange() {
             seq_length = (MIDI.getData2() >> 3) + 1;
             break;
           case 26:  //page 预留
+            seq_page = MIDI.getData2() >> 8;
             break;
           case 27:  //调整loop mode //范围0-3
             seq_loopmode = MIDI.getData2() >> 5;
@@ -277,8 +277,22 @@ void sequencerNext() {  //音序器执行下一步
   if (seq_state == 3) {  // 停止
     seq_position = 0;
   }
+  sequencerView(tmp_position);  //音序器视图
   //触发模式恢复触发
   digitalWrite(GATE2_PIN, LOW);  //TRIG 增加此行则表示触发
+}
+
+void sequencerView(int tmp_position) {  //音序器视图
+  String view_str = "";
+  for (int i = 0; i < seq_length; i++) view_str += seq_pitch[i] + " ";
+  view_str += " cc :" + cc_mode;
+  view_str += " pos:" + tmp_position;
+  view_str += " rat:" + clock_rate;
+  view_str += " len:" + seq_length;
+  view_str += " pag:" + seq_page;
+  view_str += " mod:" + seq_loopmode;
+  view_str += " ste:" + seq_state;
+  Serial.println(view_str);  //音序器视图发送
 }
 
 void firstChannel() {

@@ -46,18 +46,19 @@ float OCT_CONST = 68.25;  // V/OCT 常量
 // };
 // int p3 = 0, p5 = 0, p6 = 0;
 // int note4[4] = { 0, 0, 0, 0 };
-byte seq_pitch[16] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-byte seq_gate[16] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-byte seq_vel[16] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-byte seq_bpm = 0;       //音序器内部速度
-byte seq_length = 8;    //音序器长度
+byte seq_pitch[64] = { 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24 };
+byte seq_gate[64] = { 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63 };
+byte seq_vel[64] = { 0 };
+byte seq_bpm = 0;       //音序器内部速度 暂不可用
 byte seq_position = 0;  //音序器下标
-byte seq_loopmode = 0;  //0||1:顺序2:倒序3:随机
-byte seq_state = 1;     //0:播放 1|2:暂停 3停止
+byte seq_length = 8;    //音序器长度
+byte seq_page = 0;      //音序器页码
+byte seq_loopmode = 0;  //0:1:倒序2/3:随机
+byte seq_state = 1;     //0:播放 1/2:暂停 3停止
 byte seq_select = 1;    //当前选中的音序1-16
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(31250);  //midi协议的波特率就是31.25k 所以这里也要使用否则乱码
 
   pinMode(LDAC, OUTPUT);       //DAC trans
   pinMode(SS, OUTPUT);         //DAC trans
@@ -174,6 +175,7 @@ void controlChange() {
         digitalWrite(GATE2_PIN, LOW);  //Gate》LOW
         break;
       case midi::ControlChange:
+        String view_str = "";
         switch (MIDI.getData1()) {
           case 10:  //切换四种模式 //change cc maping in modular
             cc_mode = MIDI.getData2() >> 5;
@@ -194,36 +196,56 @@ void controlChange() {
               ch1 = 1;
               ch2 = 2;
             }
+            Serial.println("cc_mode: " + cc_mode);
             break;
           case 1:  //输出mod转化的CV
             OUT_PWM(CV3_PIN, MIDI.getData2());
+            Serial.println("mod w: " + MIDI.getData2());
             break;
           case 21:  //seq pitch
             seq_pitch[seq_select] = MIDI.getData2() >> 1;
-            // int tmppitch = MIDI.getData2() >> 1;
             if (seq_pitch[seq_select] > 60) seq_pitch[seq_select] = 60;
-            // seq_pitch[seq_select] = tmppitch;
+
+            for (int i = 0; i < seq_length; i++) view_str += seq_pitch[i] + " ";
+            Serial.println(view_str + " pitch " + "select: " + seq_select);
             break;
           case 22:  //gate pitch
-            seq_gate[seq_select] = MIDI.getData2() >> 6;
+            seq_gate[seq_select] = MIDI.getData2() >> 1;
+
+            for (int i = 0; i < seq_length; i++) view_str += seq_gate[i] + " ";
+            Serial.println(view_str + " gate " + "select: " + seq_select);
             break;
           case 23:  //vel pitch
-            seq_vel[seq_select] = MIDI.getData2() >> 1;
+            seq_vel[seq_select] = MIDI.getData2();
+
+            for (int i = 0; i < seq_length; i++) view_str += seq_vel[i] + " ";
+            Serial.println(view_str + " vel " + "select: " + seq_select);
             break;
           case 24:  //切换时钟div //clock_rate setting
             clock_rate = MIDI.getData2() >> 5;
             clock_max = 24 * clock_div / clock_rate;
+
+            Serial.println("clock_rate: " + clock_rate);
             break;
           case 25:  //调整seq length //length范围:1-16
             seq_length = (MIDI.getData2() >> 3) + 1;
+
+            Serial.println("length: " + seq_length);
             break;
           case 26:  //page 预留
+            seq_page = MIDI.getData2() >> 8;
+
+            Serial.println("page: " + seq_page);
             break;
           case 27:  //调整loop mode //范围0-3
             seq_loopmode = MIDI.getData2() >> 5;
+
+            Serial.println("loopmode: " + seq_loopmode);
             break;
           case 28:  //调整播放状态 //范围0-3
             seq_state = MIDI.getData2() >> 5;
+
+            Serial.println("state: " + seq_state);
             break;
         }
         if (100 < MIDI.getData1() && MIDI.getData1() < 117) {
@@ -235,8 +257,8 @@ void controlChange() {
 }
 
 void sequencerNext() {  //音序器执行下一步
-
-  int tmp_position = 0;
+  //播放模式下标计算
+  int tmp_position = 0;  //当前播放模式下的播放顺序
   switch (seq_loopmode) {
     default:  //正序
       tmp_position = seq_position;
@@ -251,18 +273,34 @@ void sequencerNext() {  //音序器执行下一步
       tmp_position = random(seq_length / 2, seq_length - 1);
       break;
   }
-  digitalWrite(GATE2_PIN, seq_gate[tmp_position]);  //GATE
-  OUT_CV2(OCT_CONST * seq_pitch[tmp_position]);     //V/OCT LSB for DAC》参照
-  OUT_PWM(CV2_PIN, seq_vel[tmp_position]);          //VEL
+  //gate随机功能判断
+  byte tmp_gate = seq_gate[tmp_position] >> 3;  //得到0-7
+  switch (tmp_gate) {
+    default:  //1-6随机
+      if (random(0, tmp_gate) > 3) digitalWrite(GATE2_PIN, HIGH);
+      else digitalWrite(GATE2_PIN, LOW);
+      break;
+    case 0:  //低电平
+      digitalWrite(GATE2_PIN, LOW);
+      break;
+    case 7:  //高电平
+      digitalWrite(GATE2_PIN, HIGH);
+      break;
+  }
+  // digitalWrite(GATE2_PIN, seq_gate[tmp_position] > 32 ? HIGH : LOW);  //GATE 大于32高电平 否则低电平
+  OUT_CV2(OCT_CONST * seq_pitch[tmp_position]);  //V/OCT LSB for DAC》参照
+  OUT_PWM(CV2_PIN, seq_vel[tmp_position]);       //VEL
 
-  if (seq_state == 0) {  ////播放状态控制 播放
+  //播放状态控制
+  if (seq_state == 0) {  // 播放
     seq_position++;
     if (seq_position >= seq_length) seq_position = 0;
   }
-  if (seq_state == 3) {  ////播放状态控制 停止
+  if (seq_state == 3) {  // 停止
     seq_position = 0;
   }
-  // digitalWrite(GATE2_PIN, Low);  //TRIG 增加此行则表示触发
+  //触发模式恢复触发
+  digitalWrite(GATE2_PIN, LOW);  //TRIG 增加此行则表示触发
 }
 
 void firstChannel() {
@@ -384,6 +422,6 @@ void OUT_CV2(int cv2) {
   digitalWrite(LDAC, LOW);
 }
 
-void OUT_PWM(int pin, int cc_value) {
+void OUT_PWM(int pin, int cc_value) {  //pwm 0-255
   analogWrite(pin, cc_value << 1);
 }
