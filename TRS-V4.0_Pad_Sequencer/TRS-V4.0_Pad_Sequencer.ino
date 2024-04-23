@@ -1,5 +1,6 @@
 #include <MIDI.h>
 #include <SPI.h>  //DAC通信用
+
 // #include <FlexiTimer2.h>
 
 #define CONFIG1_PIN 8   //配置1
@@ -284,14 +285,16 @@ void sequencerNext() {  //音序器执行下一步
 
 void sequencerView(int tmp_position) {  //音序器视图
   String view_str = "";
-  for (int i = 0; i < seq_length; i++) view_str += seq_pitch[i] + " ";
-  view_str += " cc :" + cc_mode;
-  view_str += " pos:" + tmp_position;
-  view_str += " rat:" + clock_rate;
-  view_str += " len:" + seq_length;
-  view_str += " pag:" + seq_page;
-  view_str += " mod:" + seq_loopmode;
-  view_str += " ste:" + seq_state;
+  view_str += " cc:" + String(cc_mode);
+  view_str += " pos:" + String(tmp_position + 1);
+  view_str += " rat:" + String(clock_rate);
+  view_str += " len:" + String(seq_length);
+  // view_str += " pag:" + String(seq_page);
+  view_str += " mod:" + String(seq_loopmode);
+  view_str += " ste:" + String(seq_state);
+  view_str += " seq:";
+  for (int i = 0; i < seq_length; i++) view_str += String(seq_pitch[i]) + " ";
+
   Serial.println(view_str);  //音序器视图发送
 }
 
