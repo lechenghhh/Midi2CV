@@ -22,8 +22,8 @@ Trs Midi2CV 3HP宽度 40mm深度
 
 ### 内部音序器说明: 
 ##### 请先将d12跳线帽插上(旧版可能没有这个跳线配置)或者将cc10 调整到40; 此时将开启内部音序器,使用note2/gate2/cc2来输出音序器的控制信息  
-触碰cc101-cc106则表示选择step1-step16  
-选择某step之后,再调整以下旋钮则修改当前step的----  
+触碰cc101-cc116表示选中step1-step16  
+选中某step之后,再调整以下旋钮则修改当前step的----  
 `cc21->Pitch`  
 `cc22->Gate`  
 `cc23->Velocity`  
