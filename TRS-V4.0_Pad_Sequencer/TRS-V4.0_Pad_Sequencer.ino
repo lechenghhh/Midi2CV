@@ -313,7 +313,7 @@ void firstChannel() {
           }
           // OUT_CV1(V_OCT[note_no1]);
           OUT_CV1(OCT_CONST * note_no1);                        //V/OCT LSB for DAC》参照
-          if (cc_mode == 0) OUT_PWM(CV1_PIN, MIDI.getData2());  //3个cv映射输出力度cv
+          /*if (cc_mode == 0)*/ OUT_PWM(CV1_PIN, MIDI.getData2());  //3个cv映射输出力度cv
           digitalWrite(GATE1_PIN, HIGH);                        //Gate》HIGH
         } else {                                                //复音模式
           poly_on_count++;
@@ -327,7 +327,7 @@ void firstChannel() {
               poly_on1 = 60;
             }
             OUT_CV1(OCT_CONST * poly_on1);                 //V/OCT LSB for DAC》参照
-            if (cc_mode == 0) OUT_PWM(CV2_PIN, velocity);  //3个cv映射输出力度cv
+            if (cc_mode != 3) OUT_PWM(CV2_PIN, velocity);  //3个cv映射输出力度cv
             digitalWrite(GATE1_PIN, HIGH);                 //Gate》HIGH
           }
           if (poly_on_count == 2) {
