@@ -15,23 +15,9 @@ Trs Midi2CV 3HP宽度 40mm深度
 0.      模式名称      Clock       Note1         Gate1           Note2         Gate2         CV1         CV2       CV3
 1.      通道1/2模式   Clock       Ch1Note       Ch1NoteOn       Ch2Note       Ch2NoteOn     Vel1        Vel2      Mod
 2.      通道3/4模式   Clock1/2    Ch3Note       Ch3NoteOn       Ch4Note       Ch4NoteOn     Vel1        Vel2      Mod
-3.      音序器模式    Clock       Ch1Note       Ch1NoteOn       SeqPitch      SeqGate       Vel1        Seq2      Mod
-4.      复音模式      Clock       Ch1Poly1      Ch1Poly1On      Ch1Poly2      Ch1Poly2On    Vel1        Vel2      Mod   
+3.      复音模式      Clock       Ch1Poly1      Ch1Poly1On      Ch1Poly2      Ch1Poly2On    Vel1        Vel2      Mod   
 
 以上所有功能未来都可以通过固件升级/改进程序拓展  
-
-### 内部音序器说明 请先将d12跳线帽插上(旧版可能没有这个跳线配置)或者将cc10 调整到40; 此时将开启内部音序器,使用note2/gate2/cc2来输出音序器的控制信息  
-触碰cc101-cc106则表示选择step1-step16  
-选择某step之后,再调整以下旋钮则修改当前step的----  
-  cc21->Pitch  
-  cc22->Gate  
-  cc23->Velocity  
-在任何step之下,都可以调整音序器的以下状态----  
-  cc24->clock div(此参数也会修改midi2cv模块的总时钟输出间隔)  
-  cc25->step length(0-16)  
-  cc26->current page(暂未开放)  
-  cc27->loop mode(顺序/倒序/随机/随机2)  
-  cc28->play state(播放/暂停/停止)  
 
 ## Arduino IDE 程序更新操作说明(Midi2CV_Trs 需要取下跳线帽)  
 

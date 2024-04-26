@@ -1,6 +1,5 @@
 #include <MIDI.h>
 #include <SPI.h>  //DAC通信用
-// #include <FlexiTimer2.h>
 
 #define CONFIG1_PIN 8   //配置1
 #define CONFIG2_PIN 12  //配置2
@@ -10,42 +9,37 @@
 #define CV1_PIN 3       //CV1
 #define CV2_PIN 5       //CV2
 #define CV3_PIN 6       //CV3
-
-MIDI_CREATE_DEFAULT_INSTANCE();  //启用MIDI库
+const byte LDAC = 9;    //SPI trans setting
 
 byte ch1 = 1;
 byte ch2 = 2;
 
-const byte LDAC = 9;  //SPI trans setting
 byte bend_range = 0;
 byte bend_msb = 0;
 byte bend_lsb = 0;
 int after_bend_pitch = 0;
-byte note_no1 = 0;        //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
-byte note_no2 = 0;        //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
-byte poly_on1 = 0;        //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
-byte poly_on2 = 0;        //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
+
+byte note_no1 = 0;  //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
+byte note_no2 = 0;  //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
+byte poly_on1 = 0;  //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
+byte poly_on2 = 0;  //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
+
 byte note_on_count1 = 0;  //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
 byte note_on_count2 = 0;  //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
 byte poly_on_count = 0;   //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
-byte clock_count0 = 0;
-byte clock_max = 24;  //clock_max change by knob setting
-int clock_rate = 0;   //knob CVin
-int clock_div = 1;    //knob CVin
-byte tmp_last_note1 = -1, tmp_last_note2 = -1;
-byte cc_mode = 0;  //用于更改当前cc映射模式
-byte Master = 1;
-float OCT_CONST = 68.25;  // V/OCT 常量
-// const int V_OCT[61] = {   // V/OCT LSB for DAC
-//   0, 68, 137, 205, 273, 341, 410, 478, 546, 614, 683, 751,
-//   819, 887, 956, 1024, 1092, 1161, 1229, 1297, 1365, 1434, 1502, 1570,
-//   1638, 1707, 1775, 1843, 1911, 1980, 2048, 2116, 2185, 2253, 2321, 2389,
-//   2458, 2526, 2594, 2662, 2731, 2799, 2867, 2935, 3004, 3072, 3140, 3209,
-//   3277, 3345, 3413, 3482, 3550, 3618, 3686, 3755, 3823, 3891, 3959, 4028,
-//   4095
-// };
+byte tmp_last_note1 = -1;
+byte tmp_last_note2 = -1;
 // int p3 = 0, p5 = 0, p6 = 0;
 // int note4[4] = { 0, 0, 0, 0 };
+
+byte clock_count = 0;  //clock计数器
+byte clock_max = 24;   //clock分辨率
+int clock_rate = 0;    //Clock速率
+int clock_div = 1;     //Clock div 特殊用途
+
+float OCT_CONST = 68.25;  // V/OCT 常量
+byte cc_mode = 0;         //用于更改当前cc映射模式
+
 byte seq_pitch[64] = { 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24 };
 byte seq_gate[64] = { 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63 };
 byte seq_vel[64] = { 0 };
@@ -57,19 +51,21 @@ byte seq_loopmode = 0;  //0:1:倒序2/3:随机
 byte seq_state = 1;     //0:播放 1/2:暂停 3停止
 byte seq_select = 1;    //当前选中的音序1-16
 
+MIDI_CREATE_DEFAULT_INSTANCE();  //启用MIDI库
+
 void setup() {
   Serial.begin(31250);  //midi协议的波特率就是31.25k 所以这里也要使用否则乱码
 
-  pinMode(LDAC, OUTPUT);       //DAC trans
-  pinMode(SS, OUTPUT);         //DAC trans
-  pinMode(CLOCK_PIN, OUTPUT);  //CLK_OUT
-  pinMode(GATE1_PIN, OUTPUT);  //CLK_OUT
-  pinMode(GATE2_PIN, OUTPUT);  //CLK_OUT
-  pinMode(CV1_PIN, OUTPUT);
-  pinMode(CV2_PIN, OUTPUT);
-  pinMode(CV3_PIN, OUTPUT);
-  pinMode(CONFIG1_PIN, INPUT_PULLUP);
-  pinMode(CONFIG2_PIN, INPUT_PULLUP);
+  pinMode(LDAC, OUTPUT);               //DAC trans
+  pinMode(SS, OUTPUT);                 //DAC trans
+  pinMode(CLOCK_PIN, OUTPUT);          //CLK_OUT
+  pinMode(GATE1_PIN, OUTPUT);          //CLK_OUT
+  pinMode(GATE2_PIN, OUTPUT);          //CLK_OUT
+  pinMode(CV1_PIN, OUTPUT);            //CV_OUT
+  pinMode(CV2_PIN, OUTPUT);            //CV_OUT
+  pinMode(CV3_PIN, OUTPUT);            //CV_OUT
+  pinMode(CONFIG1_PIN, INPUT_PULLUP);  //config
+  pinMode(CONFIG2_PIN, INPUT_PULLUP);  //config
 
   MIDI.begin(MIDI_CHANNEL_OMNI);  // MIDI CH ALL Listen
 
@@ -89,12 +85,6 @@ void setup() {
   digitalWrite(CLOCK_PIN, LOW);  //开机启动 三秒led显示
   digitalWrite(GATE1_PIN, LOW);  //开机启动 三秒led显示
   digitalWrite(GATE2_PIN, LOW);  //开机启动 三秒led显示
-
-  // FlexiTimer2::set(5, 1.0 / 100000, timer_count);  // 50usec/count
-  // FlexiTimer2::start();
-
-  // TCCR2A = _BV(COM2A1) | _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
-  // TCCR2B = _BV(CS22);
 }
 
 void loop() {
@@ -109,16 +99,19 @@ void controlChange() {
   if (MIDI.read()) {
     switch (MIDI.getType()) {
       case midi::Clock:
-        clock_count0++;
-        if (clock_count0 >= clock_max) {
-          clock_count0 = 0;
-        }
-        if (clock_count0 == 1) {
+        if (clock_count == 0) {
           digitalWrite(2, HIGH);
-          sequencerNext();  //音序器执行下一步
-        } else if (clock_count0 != 1) {
+        }
+        if (clock_count != 0) {
           digitalWrite(2, LOW);
         }
+        clock_count++;
+        if (clock_count >= clock_max) {
+          clock_count = 0;
+        }
+        break;
+      case midi::Start:
+        clock_count = 0;
         break;
       case midi::AfterTouchPoly:
         // if (cc_mode == 0) OUT_PWM(CV3_PIN, MIDI.getData2());  //3个cv映射输出力度cv
@@ -155,10 +148,8 @@ void controlChange() {
         }
         break;
       case midi::AllNotesOff:
-        clock_count0 = 0;
         note_on_count1 = 0;
         digitalWrite(GATE1_PIN, LOW);  //Gate》LOW
-        clock_count0 = 0;
         note_on_count2 = 0;
         digitalWrite(GATE2_PIN, LOW);  //Gate》LOW
         poly_on_count = 0;
@@ -170,7 +161,7 @@ void controlChange() {
         tmp_last_note2 = -1;
         poly_on_count = 0;
 
-        clock_count0 = 0;
+        clock_count = 0;
         digitalWrite(GATE1_PIN, LOW);  //Gate》LOW
         digitalWrite(GATE2_PIN, LOW);  //Gate》LOW
         break;
@@ -188,8 +179,8 @@ void controlChange() {
               clock_div = 2;
             }
             if (cc_mode == 2) {  //Seq模式
-              ch1 = 1;
-              ch2 = 2;
+              // ch1 = 1;
+              // ch2 = 2;
             }
             if (cc_mode == 3) {  //复音模式
               ch1 = 1;
@@ -284,14 +275,16 @@ void sequencerNext() {  //音序器执行下一步
 
 void sequencerView(int tmp_position) {  //音序器视图
   String view_str = "";
-  for (int i = 0; i < seq_length; i++) view_str += seq_pitch[i] + " ";
-  view_str += " cc :" + cc_mode;
-  view_str += " pos:" + tmp_position;
-  view_str += " rat:" + clock_rate;
-  view_str += " len:" + seq_length;
-  view_str += " pag:" + seq_page;
-  view_str += " mod:" + seq_loopmode;
-  view_str += " ste:" + seq_state;
+  view_str += " cc:" + String(cc_mode);
+  view_str += " pos:" + String(tmp_position + 1);
+  view_str += " rat:" + String(clock_rate);
+  view_str += " len:" + String(seq_length);
+  // view_str += " pag:" + String(seq_page);
+  view_str += " mod:" + String(seq_loopmode);
+  view_str += " ste:" + String(seq_state);
+  view_str += " seq:";
+  for (int i = 0; i < seq_length; i++) view_str += String(seq_pitch[i]) + " ";
+
   Serial.println(view_str);  //音序器视图发送
 }
 
@@ -309,10 +302,10 @@ void firstChannel() {
             note_no1 = 60;
           }
           // OUT_CV1(V_OCT[note_no1]);
-          OUT_CV1(OCT_CONST * note_no1);                        //V/OCT LSB for DAC》参照
-          if (cc_mode == 0) OUT_PWM(CV1_PIN, MIDI.getData2());  //3个cv映射输出力度cv
-          digitalWrite(GATE1_PIN, HIGH);                        //Gate》HIGH
-        } else {                                                //复音模式
+          OUT_CV1(OCT_CONST * note_no1);                            //V/OCT LSB for DAC》参照
+          /*if (cc_mode == 0)*/ OUT_PWM(CV1_PIN, MIDI.getData2());  //3个cv映射输出力度cv
+          digitalWrite(GATE1_PIN, HIGH);                            //Gate》HIGH
+        } else {                                                    //复音模式
           poly_on_count++;
           if (poly_on_count == 1) {
             // if (poly_on_count % 2 == 1) {
@@ -324,7 +317,7 @@ void firstChannel() {
               poly_on1 = 60;
             }
             OUT_CV1(OCT_CONST * poly_on1);                 //V/OCT LSB for DAC》参照
-            if (cc_mode == 0) OUT_PWM(CV2_PIN, velocity);  //3个cv映射输出力度cv
+            if (cc_mode != 3) OUT_PWM(CV2_PIN, velocity);  //3个cv映射输出力度cv
             digitalWrite(GATE1_PIN, HIGH);                 //Gate》HIGH
           }
           if (poly_on_count == 2) {
