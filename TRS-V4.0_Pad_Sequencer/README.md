@@ -5,11 +5,13 @@ Trs Midi2CV 3HP宽度 40mm深度
 
 ## 功能与参数介绍:  
 
-1xTrs Midi In(可通过跳线盘切换Trs TypeA/B)  
+1xTrs Midi In(可通过跳线盘切换Trs TypeA/B)*
 1xClock Out(Midi时钟) 另可通过cc11调整clock倍速(待测试)  
 2xPoly Out(2复音)(CV范围0-5V)(3.0版本改为midi Ch1 与midi Ch2 更适合音序器使用)  
 2xGate Out(与音对应的门)  
 3xCV Out(Midi CC信息转化而来的CV 有五种模式)  
+
+*  clock功能根据midi start信息 同步启动,需要midi设备/音序器设备开启transport send 如不开启则无法同步时钟
 
 ## Midi发送设备上的CC10可以切换以下4种模式  
 0.      模式名称      Clock       Note1         Gate1           Note2         Gate2         CV1         CV2       CV3

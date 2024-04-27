@@ -94,16 +94,15 @@ void loop() {
   firstChannel();
   secondChannel();
 }
-
 void controlChange() {
   if (MIDI.read()) {
     switch (MIDI.getType()) {
       case midi::Clock:
         if (clock_count == 0) {
-          digitalWrite(2, HIGH);
+          digitalWrite(CLOCK_PIN, HIGH);
         }
         if (clock_count != 0) {
-          digitalWrite(2, LOW);
+          digitalWrite(CLOCK_PIN, LOW);
         }
         clock_count++;
         if (clock_count >= clock_max) {
@@ -164,6 +163,7 @@ void controlChange() {
         clock_count = 0;
         digitalWrite(GATE1_PIN, LOW);  //Gate》LOW
         digitalWrite(GATE2_PIN, LOW);  //Gate》LOW
+        digitalWrite(CLOCK_PIN, LOW);
         break;
       case midi::ControlChange:
         switch (MIDI.getData1()) {
