@@ -226,10 +226,11 @@ void controlChange() {
   }
 }
 
-void sequencerNext() {  //音序器执行下一步
-  //播放模式下标计算
-  int tmp_position = 0;  //当前播放模式下的播放顺序
-  switch (seq_loopmode) {
+void sequencerNext() {       //音序器执行下一步
+  if (cc_mode != 2) return;  //如果是音序器模式 则不监听第二个通道的midi音符
+  
+  int tmp_position = 0;   //播放模式下标计算
+  switch (seq_loopmode) { //当前播放模式下的播放顺序
     default:  //正序
       tmp_position = seq_position;
       break;

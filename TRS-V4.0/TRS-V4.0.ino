@@ -74,9 +74,9 @@ void setup() {
   SPI.setClockDivider(SPI_CLOCK_DIV4);  // クロック(CLK)をシステムクロックの1/4で使用(16MHz/4)
   SPI.setDataMode(SPI_MODE0);           // クロック極性０(LOW)　クロック位相０
 
-  // if (digitalRead(CONFIG1_PIN) == 0) cc_mode = 1;  //读取d8跳线帽 默认1 插上0 如果插上给则默认进入
-  // if (digitalRead(CONFIG2_PIN) == 0) cc_mode = 2;  //读取d12跳线帽 默认1 插上0 如果插上给则默认进入
-  cc_mode = 2;
+  if (digitalRead(CONFIG1_PIN) == 0) cc_mode = 1;  //读取d8跳线帽 默认1 插上0 如果插上给则默认进入
+  if (digitalRead(CONFIG2_PIN) == 0) cc_mode = 2;  //读取d12跳线帽 默认1 插上0 如果插上给则默认进入
+  // cc_mode = 2;
 
   digitalWrite(CLOCK_PIN, HIGH);
   digitalWrite(GATE1_PIN, HIGH);
@@ -94,15 +94,17 @@ void loop() {
   firstChannel();
   secondChannel();
 }
+
 void controlChange() {
   if (MIDI.read()) {
     switch (MIDI.getType()) {
       case midi::Clock:
         if (clock_count == 0) {
-          digitalWrite(CLOCK_PIN, HIGH);
+          digitalWrite(2, HIGH);
+          // sequencerNext();  //音序器执行下一步
         }
         if (clock_count != 0) {
-          digitalWrite(CLOCK_PIN, LOW);
+          digitalWrite(2, LOW);
         }
         clock_count++;
         if (clock_count >= clock_max) {
@@ -163,7 +165,6 @@ void controlChange() {
         clock_count = 0;
         digitalWrite(GATE1_PIN, LOW);  //Gate》LOW
         digitalWrite(GATE2_PIN, LOW);  //Gate》LOW
-        digitalWrite(CLOCK_PIN, LOW);
         break;
       case midi::ControlChange:
         switch (MIDI.getData1()) {
@@ -179,8 +180,8 @@ void controlChange() {
               clock_div = 2;
             }
             if (cc_mode == 2) {  //Seq模式
-              // ch1 = 1;
-              // ch2 = 2;
+              ch1 = 1;
+              ch2 = 2;
             }
             if (cc_mode == 3) {  //复音模式
               ch1 = 1;
@@ -225,10 +226,11 @@ void controlChange() {
   }
 }
 
-void sequencerNext() {  //音序器执行下一步
-  //播放模式下标计算
-  int tmp_position = 0;  //当前播放模式下的播放顺序
-  switch (seq_loopmode) {
+void sequencerNext() {       //音序器执行下一步
+  if (cc_mode != 2) return;  //如果是音序器模式 则不监听第二个通道的midi音符
+  
+  int tmp_position = 0;   //播放模式下标计算
+  switch (seq_loopmode) { //当前播放模式下的播放顺序
     default:  //正序
       tmp_position = seq_position;
       break;
