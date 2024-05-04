@@ -19,10 +19,10 @@ byte bend_msb = 0;
 byte bend_lsb = 0;
 int after_bend_pitch = 0;
 
-byte note_no1 = 0;  //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
-byte note_no2 = 0;  //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
-byte poly_on1 = 0;  //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
-byte poly_on2 = 0;  //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
+int note_no1 = 0;  //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
+int note_no2 = 0;  //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
+int poly_on1 = 0;  //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
+int poly_on2 = 0;  //noteNo=21(A0)～60(A5) total 61,マイナスの値を取るのでint 因为取负值，所以int
 
 byte note_on_count1 = 0;  //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
 byte note_on_count2 = 0;  //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
@@ -228,10 +228,10 @@ void controlChange() {
 
 void sequencerNext() {       //音序器执行下一步
   if (cc_mode != 2) return;  //如果是音序器模式 则不监听第二个通道的midi音符
-  
-  int tmp_position = 0;   //播放模式下标计算
-  switch (seq_loopmode) { //当前播放模式下的播放顺序
-    default:  //正序
+
+  int tmp_position = 0;    //播放模式下标计算
+  switch (seq_loopmode) {  //当前播放模式下的播放顺序
+    default:               //正序
       tmp_position = seq_position;
       break;
     case 1:  //倒序
@@ -296,13 +296,17 @@ void firstChannel() {
       case midi::NoteOn:     //if NoteOn
         if (cc_mode != 1) {  //常规通道模式
           note_on_count1++;
-          note_no1 = MIDI.getData1() - 21;  //note number
+          note_no1 = MIDI.getData1() - 24;  //note number
           tmp_last_note1 = MIDI.getData1();
           if (note_no1 < 0) {
             note_no1 = 0;
           } else if (note_no1 >= 61) {
             note_no1 = 60;
           }
+          Serial.println("note_no1 ");
+          Serial.println( MIDI.getData1());
+          Serial.println(note_no1);
+
           // OUT_CV1(V_OCT[note_no1]);
           OUT_CV1(OCT_CONST * note_no1);                            //V/OCT LSB for DAC》参照
           /*if (cc_mode == 0)*/ OUT_PWM(CV1_PIN, MIDI.getData2());  //3个cv映射输出力度cv
@@ -311,7 +315,7 @@ void firstChannel() {
           poly_on_count++;
           if (poly_on_count == 1) {
             // if (poly_on_count % 2 == 1) {
-            poly_on1 = MIDI.getData1() - 21;  //note number
+            poly_on1 = MIDI.getData1() - 24;  //note number
             int velocity = MIDI.getData2();
             if (poly_on1 < 0) {
               poly_on1 = 0;
@@ -324,7 +328,7 @@ void firstChannel() {
           }
           if (poly_on_count == 2) {
             // if (poly_on_count % 2 == 0) {
-            poly_on2 = MIDI.getData1() - 21;  //note number
+            poly_on2 = MIDI.getData1() - 24;  //note number
             int velocity = MIDI.getData2();
             if (poly_on2 < 0) {
               poly_on2 = 0;
@@ -364,7 +368,7 @@ void secondChannel() {
       case midi::NoteOn:     //if NoteOn
         if (cc_mode != 1) {  //常规通道模式
           note_on_count2++;
-          note_no2 = MIDI.getData1() - 21;  //note number
+          note_no2 = MIDI.getData1() - 24;  //note number
           tmp_last_note2 = MIDI.getData1();
           if (note_no2 < 0) {
             note_no2 = 0;
