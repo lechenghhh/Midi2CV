@@ -54,7 +54,7 @@ byte seq_select = 1;    //当前选中的音序1-16
 MIDI_CREATE_DEFAULT_INSTANCE();  //启用MIDI库
 
 void setup() {
-  Serial.begin(31250);  //midi协议的波特率就是31.25k 所以这里也要使用否则乱码
+  // Serial.begin(31250);  //midi协议的波特率就是31.25k 所以这里也要使用否则乱码
 
   pinMode(LDAC, OUTPUT);               //DAC trans
   pinMode(SS, OUTPUT);                 //DAC trans
@@ -303,9 +303,7 @@ void firstChannel() {
           } else if (note_no1 >= 61) {
             note_no1 = 60;
           }
-          Serial.println("note_no1 ");
-          Serial.println( MIDI.getData1());
-          Serial.println(note_no1);
+        
 
           // OUT_CV1(V_OCT[note_no1]);
           OUT_CV1(OCT_CONST * note_no1);                            //V/OCT LSB for DAC》参照
