@@ -100,11 +100,11 @@ void controlChange() {
     switch (MIDI.getType()) {
       case midi::Clock:
         if (clock_count == 0) {
-          digitalWrite(2, HIGH);
+          digitalWrite(CLOCK_PIN, HIGH);
           // sequencerNext();  //音序器执行下一步
         }
         if (clock_count != 0) {
-          digitalWrite(2, LOW);
+          digitalWrite(CLOCK_PIN, LOW);
         }
         clock_count++;
         if (clock_count >= clock_max) {
