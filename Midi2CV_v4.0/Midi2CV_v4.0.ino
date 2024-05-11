@@ -96,7 +96,7 @@ void loop() {
 }
 
 void controlChange() {
-  if (MIDI.read()) {
+  if (MIDI.read(1)) {
     switch (MIDI.getType()) {
       case midi::Clock:
         if (clock_count == 0) {
@@ -291,7 +291,8 @@ void sequencerView(int tmp_position) {  //音序器视图
 }
 
 void firstChannel() {
-  if (MIDI.getChannel() == ch1) {  //MIDI CH1
+  // if (MIDI.getChannel() == ch1) {  //MIDI CH1
+  if (MIDI.read(ch1)) {  //MIDI CH1
     switch (MIDI.getType()) {
       case midi::NoteOn:     //if NoteOn
         if (cc_mode != 1) {  //常规通道模式
@@ -303,7 +304,7 @@ void firstChannel() {
           } else if (note_no1 >= 61) {
             note_no1 = 60;
           }
-        
+
 
           // OUT_CV1(V_OCT[note_no1]);
           OUT_CV1(OCT_CONST * note_no1);                            //V/OCT LSB for DAC》参照
@@ -360,8 +361,9 @@ void firstChannel() {
 }
 
 void secondChannel() {
-  if (cc_mode == 2) return;        //如果是音序器模式 则不监听第二个通道的midi音符
-  if (MIDI.getChannel() == ch2) {  //MIDI CH2
+  if (cc_mode == 2) return;  //如果是音序器模式 则不监听第二个通道的midi音符
+  // if (MIDI.getChannel() == ch2) {  //MIDI CH2
+  if (MIDI.read(9)) {  //MIDI CH1
     switch (MIDI.getType()) {
       case midi::NoteOn:     //if NoteOn
         if (cc_mode != 1) {  //常规通道模式
