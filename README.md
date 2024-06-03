@@ -4,6 +4,7 @@
 `V2.0` 2复音版本  
 `V3.0` 2通道版本 ch1 ch2   3xcv: vel mod cc2   
 `V3.1` 2通道版本 ch1 ch2   3xcv: vel1 vel2 mod  
+`V4.0` 2通道版本 ch1 ch2   3xcv: vel1 vel2 mod 修复时钟错位问题  
 
 ## Arduino IDE 程序更新操作说明(Midi2CV_Trs 需要取下跳线帽)
 https://github.com/FortySevenEffects/arduino_midi_library   这个是arduino midi库 需要下载zip 并用arduino的库管理器安装该zip  
