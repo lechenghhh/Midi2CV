@@ -39,12 +39,13 @@ byte clock_max = 24;   //clock分辨率
 int clock_rate = 0;    //Clock速率
 int clock_div = 1;     //Clock div 特殊用途
 
-byte cc_mode = 0;  //用于更改当前cc映射模式
+byte cc_mode = 0;           //用于更改当前cc映射模式
+byte enable_rand_trig = 0;  // 0不启用 1启用
 
 MIDI_CREATE_DEFAULT_INSTANCE();  //启用MIDI库
 
 void setup() {
-  // Serial.begin(31250);  //midi协议的波特率就是31.25k 所以这里也要使用否则乱码
+  Serial.begin(31250);  //midi协议的波特率就是31.25k 所以这里也要使用否则乱码
 
   pinMode(LDAC, OUTPUT);               //DAC trans
   pinMode(SS, OUTPUT);                 //DAC trans
@@ -81,13 +82,16 @@ void loop() {
   // Serial.println(" ");
 
   controlChange();  //midi operation
-  firstChannel();
-  secondChannel();
+  firstChannel();   //midi operation
+  secondChannel();  //midi operation
+  timerStart();     //计时器循环监听
 }
 
 void controlChange() {
-
   if (MIDI.read()) {
+    enable_rand_trig = 0;        //随机触发功能: 每当收到midi信号时 就禁用随机触发功能
+    pinMode(CLOCK_PIN, OUTPUT);  //随机触发功能: 每当收到midi信号时 恢复时钟接口为输出
+    timerReset();                //计时器重置
     // if (MIDI.getChannel()) {
     switch (MIDI.getType()) {
       case midi::Clock:
@@ -319,4 +323,17 @@ void secondChannel() {
 
     }  //MIDI CH2
   }
+}
+
+unsigned long timer_start_time = 0;  // 用于记录事件开始时间
+void timerStart() {
+  if (millis() - timer_start_time >= 20000) {  //事件持续了20秒钟或以上
+                                               // 在这里编写你的代码来响应这个事件
+    enable_rand_trig = 1;
+    triggerListener();
+  }
+}
+
+void timerReset() {
+  timer_start_time = millis();  // 重置开始时间
 }

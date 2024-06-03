@@ -20,6 +20,10 @@ Trs Midi2CV 3HP宽度 40mm深度
 2.      通道3/4模式   Clock1/2    Ch3Note       Ch3NoteOn       Ch4Note       Ch4NoteOn     Vel1        Vel2      Mod
 3.      复音模式      Clock       Ch1Poly1      Ch1Poly1On      Ch1Poly2      Ch1Poly2On    Vel1        Vel2      Mod   
 
+新功能: 当设备20s内无midi响应时 自动进入随机触发模式
+该模式下 clk接口将作为触发输入口 note1 gate1 note2 gate2 为80%/60%/40%/20%的概率 同时cc1 cc2 cc3则为一定范围的SnH信号
+当midi信号收到时 将立刻回到midi2cv的基础功能
+
 以上所有功能未来都可以通过固件升级/改进程序拓展  
 
 ## Arduino IDE 程序更新操作说明(Midi2CV_Trs 需要取下跳线帽)  
