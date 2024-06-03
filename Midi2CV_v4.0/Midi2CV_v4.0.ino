@@ -1,15 +1,19 @@
 #include <MIDI.h>
 #include <SPI.h>  //DAC通信用
 
-#define CONFIG1_PIN 8   //配置1
-#define CONFIG2_PIN 12  //配置2
-#define CLOCK_PIN 2     //CLK
-#define GATE1_PIN 4     //Gate1
-#define GATE2_PIN 7     //Gate2
-#define CV1_PIN 3       //CV1
-#define CV2_PIN 5       //CV2
-#define CV3_PIN 6       //CV3
-const byte LDAC = 9;    //SPI trans setting
+#define CONFIG1_PIN 8    //配置1
+#define CONFIG2_PIN 12   //配置2
+#define CLOCK_PIN 2      //CLK
+#define GATE1_PIN 4      //Gate1
+#define GATE2_PIN 7      //Gate2
+#define CV1_PIN 3        //CV1
+#define CV2_PIN 5        //CV2
+#define CV3_PIN 6        //CV3
+#define OCT_CONST 68.25  //V/OCT 常量
+
+#include "output.h"
+#include "inner_sequencer.h"
+#include "random_trig.h"
 
 byte ch1 = 1;
 byte ch2 = 2;
@@ -29,27 +33,13 @@ byte note_on_count2 = 0;  //当多个音符打开且其中一个音符关闭时�
 byte poly_on_count = 0;   //当多个音符打开且其中一个音符关闭时，最后一个音符不消失。
 byte tmp_last_note1 = -1;
 byte tmp_last_note2 = -1;
-// int p3 = 0, p5 = 0, p6 = 0;
-// int note4[4] = { 0, 0, 0, 0 };
 
 byte clock_count = 0;  //clock计数器
 byte clock_max = 24;   //clock分辨率
 int clock_rate = 0;    //Clock速率
 int clock_div = 1;     //Clock div 特殊用途
 
-float OCT_CONST = 68.25;  // V/OCT 常量
-byte cc_mode = 0;         //用于更改当前cc映射模式
-
-byte seq_pitch[64] = { 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24 };
-byte seq_gate[64] = { 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63 };
-byte seq_vel[64] = { 0 };
-byte seq_bpm = 0;       //音序器内部速度 暂不可用
-byte seq_position = 0;  //音序器下标
-byte seq_length = 8;    //音序器长度
-byte seq_page = 0;      //音序器页码
-byte seq_loopmode = 0;  //0:1:倒序2/3:随机
-byte seq_state = 1;     //0:播放 1/2:暂停 3停止
-byte seq_select = 1;    //当前选中的音序1-16
+byte cc_mode = 0;  //用于更改当前cc映射模式
 
 MIDI_CREATE_DEFAULT_INSTANCE();  //启用MIDI库
 
@@ -98,12 +88,12 @@ void loop() {
 void controlChange() {
 
   if (MIDI.read()) {
-  // if (MIDI.getChannel()) {
+    // if (MIDI.getChannel()) {
     switch (MIDI.getType()) {
       case midi::Clock:
         if (clock_count == 0) {
           digitalWrite(CLOCK_PIN, HIGH);
-          // sequencerNext();  //音序器执行下一步
+          //  if (cc_mode == 2) sequencerNext();       //音序器执行下一步
         }
         if (clock_count != 0) {
           digitalWrite(CLOCK_PIN, LOW);
@@ -329,92 +319,4 @@ void secondChannel() {
 
     }  //MIDI CH2
   }
-}
-
-void sequencerNext() {       //音序器执行下一步
-  if (cc_mode != 2) return;  //如果是音序器模式 则不监听第二个通道的midi音符
-
-  int tmp_position = 0;    //播放模式下标计算
-  switch (seq_loopmode) {  //当前播放模式下的播放顺序
-    default:               //正序
-      tmp_position = seq_position;
-      break;
-    case 1:  //倒序
-      tmp_position = seq_length - seq_position - 1;
-      break;
-    case 2:  //随机1
-      tmp_position = random(0, seq_length - 1);
-      break;
-    case 3:  //随机2 后一半随机播放
-      tmp_position = random(seq_length / 2, seq_length - 1);
-      break;
-  }
-  //gate随机功能判断
-  byte tmp_gate = seq_gate[tmp_position] >> 3;  //得到0-7
-  switch (tmp_gate) {
-    default:  //1-6随机
-      if (random(0, tmp_gate) > 3) digitalWrite(GATE2_PIN, HIGH);
-      else digitalWrite(GATE2_PIN, LOW);
-      break;
-    case 0:  //低电平
-      digitalWrite(GATE2_PIN, LOW);
-      break;
-    case 7:  //高电平
-      digitalWrite(GATE2_PIN, HIGH);
-      break;
-  }
-  // digitalWrite(GATE2_PIN, seq_gate[tmp_position] > 32 ? HIGH : LOW);  //GATE 大于32高电平 否则低电平
-  OUT_CV2(OCT_CONST * seq_pitch[tmp_position]);  //V/OCT LSB for DAC》参照
-  OUT_PWM(CV2_PIN, seq_vel[tmp_position]);       //VEL
-
-  //播放状态控制
-  if (seq_state == 0) {  // 播放
-    seq_position++;
-    if (seq_position >= seq_length) seq_position = 0;
-  }
-  if (seq_state == 3) {  // 停止
-    seq_position = 0;
-  }
-  sequencerView(tmp_position);  //音序器视图
-  //触发模式恢复触发
-  digitalWrite(GATE2_PIN, LOW);  //TRIG 增加此行则表示触发
-}
-
-void sequencerView(int tmp_position) {  //音序器视图
-  String view_str = "";
-  view_str += " cc:" + String(cc_mode);
-  view_str += " pos:" + String(tmp_position + 1);
-  view_str += " rat:" + String(clock_rate);
-  view_str += " len:" + String(seq_length);
-  // view_str += " pag:" + String(seq_page);
-  view_str += " mod:" + String(seq_loopmode);
-  view_str += " ste:" + String(seq_state);
-  view_str += " seq:";
-  for (int i = 0; i < seq_length; i++) view_str += String(seq_pitch[i]) + " ";
-
-  Serial.println(view_str);  //音序器视图发送
-}
-
-//DAC_CV output
-void OUT_CV1(int cv) {
-  digitalWrite(LDAC, HIGH);
-  digitalWrite(SS, LOW);
-  SPI.transfer((cv >> 8) | 0x30);  // H0x30=OUTA/1x
-  SPI.transfer(cv & 0xff);
-  digitalWrite(SS, HIGH);
-  digitalWrite(LDAC, LOW);
-}
-
-//DAC_CV2 output
-void OUT_CV2(int cv2) {
-  digitalWrite(LDAC, HIGH);
-  digitalWrite(SS, LOW);
-  SPI.transfer((cv2 >> 8) | 0xB0);  // H0xB0=OUTB/1x
-  SPI.transfer(cv2 & 0xff);
-  digitalWrite(SS, HIGH);
-  digitalWrite(LDAC, LOW);
-}
-
-void OUT_PWM(int pin, int cc_value) {  //pwm 0-255
-  analogWrite(pin, cc_value << 1);
 }
