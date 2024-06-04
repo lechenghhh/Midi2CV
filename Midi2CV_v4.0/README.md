@@ -15,14 +15,12 @@ Trs Midi2CV 3HP宽度 40mm深度
 *clock sync功能设备开启Transport Send(走带控制发送) 否则无法根据播放同步时钟,时钟将自行周期触发  
 
 ## Midi发送设备上的CC10可以切换以下4种模式  
-0.      模式名称      Clock       Note1         Gate1           Note2         Gate2         CV1         CV2       CV3
-1.      通道1/2模式   Clock       Ch1Note       Ch1NoteOn       Ch2Note       Ch2NoteOn     Vel1        Vel2      Mod
-2.      通道3/4模式   Clock1/2    Ch3Note       Ch3NoteOn       Ch4Note       Ch4NoteOn     Vel1        Vel2      Mod
-3.      复音模式      Clock       Ch1Poly1      Ch1Poly1On      Ch1Poly2      Ch1Poly2On    Vel1        Vel2      Mod   
-
-新功能: 当设备20s内无midi响应时 自动进入随机触发模式
-该模式下 clk接口将作为触发输入口 note1 gate1 note2 gate2 为80%/60%/40%/20%的概率 同时cc1 cc2 cc3则为一定范围的SnH信号
-当midi信号收到时 将立刻回到midi2cv的基础功能
+0.      模式名称                  Clock       Note1         Gate1           Note2         Gate2         CV1         CV2        CV3
+1.      通道1/2模式               Clock       Ch1Note       Ch1NoteOn       Ch2Note       Ch2NoteOn     Vel1        Vel2       Mod
+2.      通道3/4模式               Clock1/2    Ch3Note       Ch3NoteOn       Ch4Note       Ch4NoteOn     Vel1        Vel2       Mod
+3.      复音模式                  Clock       Ch1Poly1      Ch1Poly1On      Ch1Poly2      Ch1Poly2On    Vel1        Vel2       Mod   
+4.      10s无midi进入概率触发模式  Trig In     80%Trig       60%Trig         40%Trig       20%Trig       SnH         Inv SnH    1/2SnH
+10s无midi响应时(如果任意时刻收到midi信号则即刻回到midi模式):
 
 以上所有功能未来都可以通过固件升级/改进程序拓展  
 
