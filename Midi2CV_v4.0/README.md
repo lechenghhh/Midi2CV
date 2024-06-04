@@ -19,7 +19,7 @@ Trs Midi2CV 3HP宽度 40mm深度
 1.      通道1/2模式               Clock       Ch1Note       Ch1NoteOn       Ch2Note       Ch2NoteOn     Vel1        Vel2       Mod
 2.      通道3/4模式               Clock1/2    Ch3Note       Ch3NoteOn       Ch4Note       Ch4NoteOn     Vel1        Vel2       Mod
 3.      复音模式                  Clock       Ch1Poly1      Ch1Poly1On      Ch1Poly2      Ch1Poly2On    Vel1        Vel2       Mod   
-4.      10s无midi进入概率触发模式  Trig In     80%Trig       60%Trig         40%Trig       20%Trig       SnH         Inv SnH    1/2SnH
+4.      10s无midi进入概率触发模式  Trig In     80%RandTrig   60%RandTrig     40%RandTrig   20%RandTrig   RandCV      Inv RandCV 1/2RandCV
 10s无midi响应时(如果任意时刻收到midi信号则即刻回到midi模式):
 
 以上所有功能未来都可以通过固件升级/改进程序拓展  
