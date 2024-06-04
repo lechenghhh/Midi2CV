@@ -24,7 +24,7 @@ void triggerOff() {
 }
 
 void triggerListener() {
-    Serial.println(" triggerListener");
+  // Serial.println(" triggerListener");
   pinMode(CLOCK_PIN, INPUT);  //CLK_OUT
 
 
