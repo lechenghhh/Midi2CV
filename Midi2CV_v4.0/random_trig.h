@@ -1,9 +1,19 @@
-#include <MsTimer2.h>
 
-int trig_clk_in = 0;
+unsigned long mytimer_start_time = 0;       // 用于记录事件开始时间
+unsigned long mytimer_delay_time = 100000;  // 用于记录事件开始时间
 
-void gate2Stop() {
-  digitalWrite(GATE2_PIN, 0);
+void myTimerStart(unsigned long time) {
+  mytimer_delay_time = time;
+}
+
+void myTimerLoop() {
+  if (millis() - mytimer_start_time >= mytimer_delay_time) {  //事件持续10秒钟或以上
+    digitalWrite(GATE2_PIN, 0);                               //在这里编写你的代码来响应这个事件
+  }
+}
+
+void myTimerReset() {
+  mytimer_start_time = millis();  // 重置开始时间
 }
 
 void triggerOn() {
@@ -15,10 +25,12 @@ void triggerOn() {
     digitalWrite(GATE1_PIN, 1);
   if (randomNum < 64)
     OUT_CV2(4095);
+
   //rand gate length
   digitalWrite(GATE2_PIN, 1);
-  MsTimer2::set(random(0, 1024), gate2Stop);  // 0-1024 ms //此功能可能导致d3 cv1无效
-  MsTimer2::start();
+  myTimerStart(random(1, 32) * random(1, 32));
+  myTimerReset();
+
   //rabd level
   analogWrite(CV1_PIN, randomNum);         //8bit 0-256  2^8
   analogWrite(CV2_PIN, 255 - randomNum);   //inv
@@ -32,10 +44,11 @@ void triggerOff() {
   // digitalWrite(GATE2_PIN, 0);
 }
 
-void triggerListener() {
+int trig_clk_in = 0;
+
+void triggerListener() {  //In the loop
   // Serial.println(" triggerListener");
   pinMode(CLOCK_PIN, INPUT);  //CLK_OUT
-
 
   if (digitalRead(CLOCK_PIN) == 1 && trig_clk_in == 0) {
     trig_clk_in = 1;
@@ -45,4 +58,6 @@ void triggerListener() {
     trig_clk_in = 0;
     triggerOff();
   }
+
+  myTimerLoop();
 }

@@ -84,7 +84,7 @@ void loop() {
   controlChange();  //midi operation
   firstChannel();   //midi operation
   secondChannel();  //midi operation
-  timerStart();     //计时器循环监听
+  timerLoop();      //计时器循环监听
 }
 
 void controlChange() {
@@ -326,7 +326,7 @@ void secondChannel() {
 }
 
 unsigned long timer_start_time = 0;  // 用于记录事件开始时间
-void timerStart() {
+void timerLoop() {
   if (millis() - timer_start_time >= 10000) {  //事件持续10秒钟或以上
                                                //在这里编写你的代码来响应这个事件
     enable_rand_trig = 1;
