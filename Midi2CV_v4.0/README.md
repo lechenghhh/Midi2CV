@@ -1,7 +1,7 @@
 # Midi2CV_Trs V4.0
 
 Eurorack 自研发基于Arduino nano的强大Midi2CV模块  
-Trs Midi2CV 3HP宽度 40mm深度  
+Trs Midi2CV 2HP宽度 40mm深度  
 
 ## 功能与参数介绍:  
 
@@ -15,14 +15,15 @@ Trs Midi2CV 3HP宽度 40mm深度
 *clock sync功能设备开启Transport Send(走带控制发送) 否则无法根据播放同步时钟,时钟将自行周期触发  
 
 ## Midi发送设备上的CC10可以切换以下4种模式  
-0.      模式名称                  Clock       Note1         Gate1           Note2         Gate2         CV1         CV2        CV3
-1.      通道1/2模式               Clock       Ch1Note       Ch1NoteOn       Ch2Note       Ch2NoteOn     Vel1        Vel2       Mod
-2.      通道3/4模式               Clock1/2    Ch3Note       Ch3NoteOn       Ch4Note       Ch4NoteOn     Vel1        Vel2       Mod
-3.      复音模式                  Clock       Ch1Poly1      Ch1Poly1On      Ch1Poly2      Ch1Poly2On    Vel1        Vel2       Mod   
-4.      10s无midi进入概率触发模式  Trig In     80%RandTrig   60%RandTrig     40%RandTrig   20%RandTrig   RandCV      Inv RandCV 1/2RandCV
-10s无midi响应时(如果任意时刻收到midi信号则即刻回到midi模式):
+|模式名称/接口名称|Clock|Note1|Gate1|Note2|Gate2|CV1|CV2|CV3|
+|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|
+|通道1&2模式|Clock|Ch1NotePitch|Ch1NoteOn|Ch2NotePitch|Ch2NoteOn|Vel1|Vel2|Mod|
+|通道3&4模式|Clock1/2|Ch3NotePitch|Ch3NoteOn|Ch4NotePitch|Ch4NoteOn|Vel1|Vel2|Mod|
+|复音模式|Clock|Ch1Poly1Pitch|Ch1Poly1On|Ch1Poly2Pitch|Ch1Poly2On|Vel1|Vel2|Mod|   
+|概率触发模式-10s无midi进入|Trig In|80%RandTrig|60%RandTrig|40%RandTrig|GateRandLength|RandVoltage|RandVoltageInv|RandVoltage1/2|
 
-以上所有功能未来都可以通过固件升级/改进程序拓展  
+10s无midi响应时(如果任意时刻收到midi信号则即刻回到midi模式)  
+敬请期待更多更新
 
 ## Arduino IDE 程序更新操作说明(Midi2CV_Trs 需要取下跳线帽)  
 

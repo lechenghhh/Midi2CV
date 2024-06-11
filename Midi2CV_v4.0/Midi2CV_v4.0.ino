@@ -81,9 +81,9 @@ void setup() {
 void loop() {
   // Serial.println(" ");
 
-  controlChange();  //midi operation
-  firstChannel();   //midi operation
-  secondChannel();  //midi operation
+  controlChange();  //midi cc
+  firstChannel();   //midi ch1
+  secondChannel();  //midi ch2
   timerLoop();      //计时器循环监听
 }
 
