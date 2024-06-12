@@ -5,8 +5,8 @@
 1xTrs Midi In(可通过跳线盘切换Trs TypeA/B)  
 1xClock Out*(可通过cc24调整clock倍速**)  
 2xNote Out(CV范围0-5V)  
-2xGate Out(与音对应的门)  
-3xCV Out(Midi CC信息转化而来的CV)  
+2xGate Out(与音对应的门0-5V)  
+3xCV Out(Midi CC信息转化而来的CV信号0-5V)  
 
 *clock功能需要设备开启Clock Send(时钟同步发送)  否则将无法收到时钟讯号  
 **clock sync功能设备开启Transport Send(走带控制发送) 否则无法根据播放同步时钟,时钟将自行周期触发  
