@@ -18,7 +18,7 @@
 |Midi:通道1&2模式|Clock|Ch1NotePitch|Ch1NoteOn|Ch2NotePitch|Ch2NoteOn|Vel1|Vel2|Mod|
 |Midi:通道3&4模式|Clock1/2|Ch3NotePitch|Ch3NoteOn|Ch4NotePitch|Ch4NoteOn|Vel1|Vel2|Mod|
 |Midi:复音模式|Clock|Ch1Poly1Pitch|Ch1Poly1On|Ch1Poly2Pitch|Ch1Poly2On|Vel1|Vel2|Mod|   
-|概率模式***|Trig In|80%RandTrig|60%RandTrig|40%RandTrig|GateRandLength|RandVoltage|RandVoltageInv|RandVoltage1/2|
+|概率模式***|Trig In|75%RandTrig|50%RandGate|25%RandGate|GateRandLength|RandVoltage|RandVoltageInv|RandVoltage1/2|
 
 ***如果任意时刻收到MIDI信号则即刻回到MIDI模式  
 敬请期待更多功能更新
