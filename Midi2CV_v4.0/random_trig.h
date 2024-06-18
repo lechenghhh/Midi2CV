@@ -18,13 +18,18 @@ void myTimerReset() {
 
 void triggerOn() {
   int randomNum = random(0, 255);
+  
   //rand trig
-  if (randomNum < 192)
+  if (randomNum < 192) {
     OUT_CV1(4095);
-  if (randomNum < 128)
+    OUT_CV1(0);
+  }
+  if (randomNum < 128) {
     digitalWrite(GATE1_PIN, 1);
-  if (randomNum < 64)
+  }
+  if (randomNum < 64) {
     OUT_CV2(4095);
+  }
 
   //rand gate length
   digitalWrite(GATE2_PIN, 1);
