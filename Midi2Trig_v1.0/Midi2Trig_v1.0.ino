@@ -45,8 +45,8 @@ void setup() {
 
   if (digitalRead(CONFIG1_PIN) == 0) ch1 = 10;      //读取d10跳线帽 默认1 插上0 控制通道为ch10
   if (digitalRead(CONFIG1_PIN) == 1) ch1 = 1;       //读取d10跳线帽 默认1 插上0 控制通道为ch1
-  if (digitalRead(CONFIG2_PIN) == 0) cc_mode = 1;  //读取d12跳线帽 默认1 插上0 如果插上给则默认进入
-  if (digitalRead(CONFIG2_PIN) == 1) cc_mode = 0;  //读取d12跳线帽 默认1 插上0 如果插上给则默认进入
+  if (digitalRead(CONFIG2_PIN) == 0) cc_mode = 1;  //读取d12跳线帽 默认1 插上0 如果插上给则默认进入trig
+  if (digitalRead(CONFIG2_PIN) == 1) cc_mode = 0;  //读取d12跳线帽 默认1 插上0 如果插上给则默认进入gate
   // cc_mode = 2;
 
   for (int i = 2; i <= 8; i++)
