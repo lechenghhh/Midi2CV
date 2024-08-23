@@ -35,7 +35,7 @@
 
 ## Arduino IDE 程序更新操作说明(Midi2CV_Trs 需要取下跳线帽)
 #### https://github.com/FortySevenEffects/arduino_midi_library   这个是arduino midi库 需要下载zip 并用arduino的库管理器安装该zip
-#### 打开项目中对应的 .ino 文件(使用Arduino IDE打开)
+#### 打开项目中对应的 .ino 文件(使用Arduino IDE打开) 此时usb与电脑进行连接
 #### 左上角有个框 点击后下拉选中您的usb连接的com口号码 然后找到 Arduino Nano 右边usb需要再次选择一下com口号码 然后按确定
 #### 上方工具/tools > Processror > Atmega168
 #### 注:以上操作做一次之后不用再做 除非你换了个ino打开则需要重新选择
