@@ -5,7 +5,7 @@
 
 1xTrs Midi In(可通过跳线盘切换Trs TypeA/B)  
 1xClock Out*(可通过cc24调整clock倍速**)  
-7xGate Out
+7xGate Out(可通过D10跳线盘调整通道为ch1或者ch10)
 
 *clock功能需要设备开启Clock Send(时钟同步发送)  否则将无法收到时钟讯号  
 **clock sync功能设备开启Transport Send(走带控制发送) 否则无法根据播放同步时钟,时钟将自行周期触发  
