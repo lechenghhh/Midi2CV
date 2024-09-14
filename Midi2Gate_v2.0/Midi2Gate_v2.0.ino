@@ -1,10 +1,11 @@
-#include <MIDI.h>
-#include <SPI.h>  //DAC通信用
-
 #define CONFIG1_PIN 10  //配置1
 #define CONFIG2_PIN 12  //配置2
 #define CLOCK_PIN 11    //CLK
 //D2-D8 Gate Out
+#include <MIDI.h>
+#include <SPI.h>  //DAC通信用
+#include "random_trig.h"
+
 
 const byte LDAC = 9;  //SPI trans setting
 
@@ -20,7 +21,8 @@ byte clock_max = 24;   //clock分辨率
 int clock_rate = 0;    //Clock速率
 int clock_div = 1;     //Clock div 特殊用途
 
-byte cc_mode = 0;  //用于更改当前cc映射模式
+byte cc_mode = 0;          //用于更改当前cc映射模式
+int enable_rand_trig = 0;  //随机触发功能: 每当收到midi信号时 就禁用随机触发功能
 
 
 MIDI_CREATE_DEFAULT_INSTANCE();  //启用MIDI库
@@ -65,10 +67,14 @@ void loop() {
     firstChannel();
   if (cc_mode == 1)  //D12插上 多通道但音符模式
     multChannel();
+
+  timerLoop();
 }
 
 void controlChange() {
   if (MIDI.read()) {
+    enable_rand_trig = 0;  //随机触发功能: 每当收到midi信号时 就禁用随机触发功能
+
     switch (MIDI.getType()) {
       case midi::Clock:
         if (clock_count == 0) {
@@ -172,4 +178,17 @@ void multChannel() {
   //   case 7:
   //     break;
   // }
+}
+
+unsigned long timer_start_time = 0;  // 用于记录事件开始时间
+void timerLoop() {
+  if (millis() - timer_start_time >= 10000) {  //事件持续10秒钟或以上
+                                               //在这里编写你的代码来响应这个事件
+    enable_rand_trig = 1;
+    triggerListener();
+  }
+}
+
+void timerReset() {
+  timer_start_time = millis();  // 重置开始时间
 }
