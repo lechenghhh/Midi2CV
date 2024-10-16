@@ -53,9 +53,11 @@ void setup() {
 
   for (int i = 2; i <= 8; i++)
     digitalWrite(i, HIGH);
+  digitalWrite(CLOCK_PIN, HIGH);
   delay(3000);
   for (int i = 2; i <= 8; i++)
     digitalWrite(i, LOW);
+  digitalWrite(CLOCK_PIN, LOW);
 }
 
 void loop() {
