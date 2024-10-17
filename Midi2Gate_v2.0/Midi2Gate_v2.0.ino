@@ -75,7 +75,8 @@ void loop() {
 
 void controlChange() {
   if (MIDI.read()) {
-    enable_rand_trig = 0;  //随机触发功能: 每当收到midi信号时 就禁用随机触发功能
+    enable_rand_trig = 0;        //随机触发功能: 每当收到midi信号时 就禁用随机触发功能
+    pinMode(CLOCK_PIN, OUTPUT);  //随机触发功能: 每当收到midi信号时 恢复时钟接口为输出
 
     switch (MIDI.getType()) {
       case midi::Clock:
