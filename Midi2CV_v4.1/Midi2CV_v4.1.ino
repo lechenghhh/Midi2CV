@@ -80,7 +80,7 @@ void setup() {
 }
 
 void loop() {
-  // Serial.println(" ");
+  // Serial.println("loop");
 
   controlChange();  //midi cc
   firstChannel();   //midi ch1
@@ -330,6 +330,7 @@ void secondChannel() {
 unsigned long timer_start_time = 0;  // 用于记录事件开始时间
 void timerLoop() {
   if (millis() - timer_start_time >= 10000) {  //事件持续10秒钟或以上
+    // Serial.println("random mode ");
 
     restoreDefaultPWM();  //恢复pwm
     enable_rand_trig = 1;

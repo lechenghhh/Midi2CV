@@ -33,7 +33,8 @@ void triggerOn() {
 
   //rand gate length
   digitalWrite(GATE2_PIN, 1);
-  myTimerStart(random(1, 32) * random(1, 32));
+  myTimerStart(random(1, 1024) );//线性改绿曲线
+  // myTimerStart(random(1, 32) * random(1, 32));//幂概率曲线
   myTimerReset();
 
   //rabd level
